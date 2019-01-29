@@ -171,6 +171,7 @@ class FrameStack(gym.Wrapper):
 
     def _get_ob(self):
         assert len(self.frames) == self.k
+        # self.frames.reverse() # A potential solution
         return LazyFrames(list(self.frames))
 
 class ScaledFloatFrame(gym.ObservationWrapper):
@@ -238,4 +239,3 @@ def wrap_deepmind(env, episode_life=True, clip_rewards=True, frame_stack=False, 
     if frame_stack:
         env = FrameStack(env, 4)
     return env
-

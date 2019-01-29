@@ -12,7 +12,11 @@ from baselines.common.tf_util import get_session
 from baselines import logger
 from importlib import import_module
 
+from baselines.deepq.models import build_q_func
+
 from baselines.common.vec_env.vec_normalize import VecNormalize
+
+from baselines.attacks.fast_gradient import fgm
 
 try:
     from mpi4py import MPI
@@ -28,6 +32,10 @@ try:
     import roboschool
 except ImportError:
     roboschool = None
+
+# Import Cleverhans Components
+from cleverhans.attacks import FastGradientMethod
+
 
 _game_envs = defaultdict(set)
 for env in gym.envs.registry.all():
@@ -203,10 +211,26 @@ def main():
         logger.log("Running trained model")
         env = build_env(args)
         obs = env.reset()
+
+        obs_np = np.asarray(obs)
+        print(obs_np.shape) # (84, 84, 4)
+
         def initialize_placeholders(nlstm=128,**kwargs):
             return np.zeros((args.num_env or 1, 2*nlstm)), np.zeros((1))
         state, dones = initialize_placeholders(**extra_args)
         while True:
+            if args.adv:
+                # fgsm = FastGradientMethod(model)
+                # fgsm_params = {'eps': 0.3, 'clip_min': 0., 'clip_max': 1.}
+                # adv_obs = fgsm.generate(obs[1:], **fgsm_params)
+                # Observation is a four frame stack?
+                # Do not know what obs is (LazyFrame?)
+
+                # obs = env.reset() # Dummy Observation
+                # TODO: Write perturb function that takes in obs and return adv
+
+                net = build_q_func(network='conv_only')
+                adv_obs = fgm(net, obs)
             actions, _, state, _ = model.step(obs,S=state, M=dones)
             obs, _, done, _ = env.step(actions)
             env.render()
