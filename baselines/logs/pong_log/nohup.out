@@ -1,0 +1,157 @@
+Logging to /users/ai/x7yw4/experiments/log/pong
+Logging to /users/ai/x7yw4/experiments/log/pong
+2019-01-29 16:05:49.957452: I tensorflow/core/platform/cpu_feature_guard.cc:141] Your CPU supports instructions that this TensorFlow binary was not compiled to use: SSE4.1 SSE4.2 AVX AVX2 FMA
+2019-01-29 16:05:50.287596: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1432] Found device 0 with properties: 
+name: Quadro P6000 major: 6 minor: 1 memoryClockRate(GHz): 1.645
+pciBusID: 0000:82:00.0
+totalMemory: 23.88GiB freeMemory: 23.70GiB
+2019-01-29 16:05:50.505833: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1432] Found device 1 with properties: 
+name: GeForce GTX 1080 Ti major: 6 minor: 1 memoryClockRate(GHz): 1.582
+pciBusID: 0000:01:00.0
+totalMemory: 10.92GiB freeMemory: 10.74GiB
+2019-01-29 16:05:50.698757: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1432] Found device 2 with properties: 
+name: GeForce GTX 1080 Ti major: 6 minor: 1 memoryClockRate(GHz): 1.582
+pciBusID: 0000:02:00.0
+totalMemory: 10.92GiB freeMemory: 10.75GiB
+2019-01-29 16:05:50.700652: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1511] Adding visible gpu devices: 0, 1, 2
+2019-01-29 16:05:52.098451: I tensorflow/core/common_runtime/gpu/gpu_device.cc:982] Device interconnect StreamExecutor with strength 1 edge matrix:
+2019-01-29 16:05:52.098505: I tensorflow/core/common_runtime/gpu/gpu_device.cc:988]      0 1 2 
+2019-01-29 16:05:52.098517: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1001] 0:   N N N 
+2019-01-29 16:05:52.098525: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1001] 1:   N N Y 
+2019-01-29 16:05:52.098532: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1001] 2:   N Y N 
+2019-01-29 16:05:52.099862: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 22994 MB memory) -> physical GPU (device: 0, name: Quadro P6000, pci bus id: 0000:82:00.0, compute capability: 6.1)
+2019-01-29 16:05:52.100322: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:1 with 10389 MB memory) -> physical GPU (device: 1, name: GeForce GTX 1080 Ti, pci bus id: 0000:01:00.0, compute capability: 6.1)
+2019-01-29 16:05:52.100680: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:2 with 10398 MB memory) -> physical GPU (device: 2, name: GeForce GTX 1080 Ti, pci bus id: 0000:02:00.0, compute capability: 6.1)
+env_type: atari
+Training deepq on atari:PongNoFrameskip-v4 with arguments 
+{'network': 'conv_only', 'lr': 0.0001, 'buffer_size': 10000, 'exploration_fraction': 0.1, 'exploration_final_eps': 0.01, 'train_freq': 4, 'learning_starts': 10000, 'target_network_update_freq': 1000, 'gamma': 0.99, 'prioritized_replay': True, 'prioritized_replay_alpha': 0.6, 'checkpoint_freq': 10000, 'checkpoint_path': None, 'dueling': True}
+--------------------------------------
+| % time spent exploring  | 53       |
+| episodes                | 100      |
+| mean 100 episode reward | -20.3    |
+| steps                   | 93401    |
+--------------------------------------
+Saving model due to mean reward increase: None -> -20.3
+Saving model due to mean reward increase: -20.3 -> -20.2
+Saving model due to mean reward increase: -20.2 -> -20.1
+Saving model due to mean reward increase: -20.1 -> -19.9
+Saving model due to mean reward increase: -19.9 -> -19.8
+Saving model due to mean reward increase: -19.8 -> -19.7
+Saving model due to mean reward increase: -19.7 -> -19.6
+Saving model due to mean reward increase: -19.6 -> -19.4
+Saving model due to mean reward increase: -19.4 -> -19.2
+Saving model due to mean reward increase: -19.2 -> -18.9
+Saving model due to mean reward increase: -18.9 -> -18.6
+Saving model due to mean reward increase: -18.6 -> -18.3
+Saving model due to mean reward increase: -18.3 -> -18.0
+Saving model due to mean reward increase: -18.0 -> -17.7
+Saving model due to mean reward increase: -17.7 -> -17.0
+Saving model due to mean reward increase: -17.0 -> -15.5
+Saving model due to mean reward increase: -15.5 -> -13.8
+Saving model due to mean reward increase: -13.8 -> -11.8
+--------------------------------------
+| % time spent exploring  | 1        |
+| episodes                | 200      |
+| mean 100 episode reward | -11.5    |
+| steps                   | 270866   |
+--------------------------------------
+Saving model due to mean reward increase: -11.8 -> -9.9
+Saving model due to mean reward increase: -9.9 -> -7.8
+Saving model due to mean reward increase: -7.8 -> -5.8
+Saving model due to mean reward increase: -5.8 -> -3.6
+Saving model due to mean reward increase: -3.6 -> -2.4
+Saving model due to mean reward increase: -2.4 -> -0.3
+Saving model due to mean reward increase: -0.3 -> 1.6
+Saving model due to mean reward increase: 1.6 -> 3.7
+Saving model due to mean reward increase: 3.7 -> 5.5
+Saving model due to mean reward increase: 5.5 -> 7.7
+Saving model due to mean reward increase: 7.7 -> 9.8
+Saving model due to mean reward increase: 9.8 -> 11.4
+Saving model due to mean reward increase: 11.4 -> 12.9
+Saving model due to mean reward increase: 12.9 -> 14.4
+Saving model due to mean reward increase: 14.4 -> 16.3
+Saving model due to mean reward increase: 16.3 -> 17.2
+Saving model due to mean reward increase: 17.2 -> 17.3
+Saving model due to mean reward increase: 17.3 -> 17.4
+--------------------------------------
+| % time spent exploring  | 1        |
+| episodes                | 300      |
+| mean 100 episode reward | 17.5     |
+| steps                   | 456567   |
+--------------------------------------
+Saving model due to mean reward increase: 17.4 -> 17.5
+Saving model due to mean reward increase: 17.5 -> 17.6
+Saving model due to mean reward increase: 17.6 -> 17.7
+Saving model due to mean reward increase: 17.7 -> 17.8
+Saving model due to mean reward increase: 17.8 -> 18.0
+Saving model due to mean reward increase: 18.0 -> 18.1
+--------------------------------------
+| % time spent exploring  | 1        |
+| episodes                | 400      |
+| mean 100 episode reward | 18.1     |
+| steps                   | 640705   |
+--------------------------------------
+Saving model due to mean reward increase: 18.1 -> 18.4
+Saving model due to mean reward increase: 18.4 -> 18.5
+Saving model due to mean reward increase: 18.5 -> 18.6
+Saving model due to mean reward increase: 18.6 -> 18.7
+--------------------------------------
+| % time spent exploring  | 1        |
+| episodes                | 500      |
+| mean 100 episode reward | 18.7     |
+| steps                   | 821119   |
+--------------------------------------
+Saving model due to mean reward increase: 18.7 -> 18.8
+Saving model due to mean reward increase: 18.8 -> 18.9
+Saving model due to mean reward increase: 18.9 -> 19.0
+--------------------------------------
+| % time spent exploring  | 1        |
+| episodes                | 600      |
+| mean 100 episode reward | 18.8     |
+| steps                   | 1001431  |
+--------------------------------------
+Saving model due to mean reward increase: 19.0 -> 19.1
+--------------------------------------
+| % time spent exploring  | 1        |
+| episodes                | 700      |
+| mean 100 episode reward | 19.2     |
+| steps                   | 1179105  |
+--------------------------------------
+Saving model due to mean reward increase: 19.1 -> 19.2
+Saving model due to mean reward increase: 19.2 -> 19.3
+Saving model due to mean reward increase: 19.3 -> 19.4
+Saving model due to mean reward increase: 19.4 -> 19.5
+Saving model due to mean reward increase: 19.5 -> 19.6
+Saving model due to mean reward increase: 19.6 -> 19.7
+--------------------------------------
+| % time spent exploring  | 1        |
+| episodes                | 800      |
+| mean 100 episode reward | 19.7     |
+| steps                   | 1355098  |
+--------------------------------------
+--------------------------------------
+| % time spent exploring  | 1        |
+| episodes                | 900      |
+| mean 100 episode reward | 19.5     |
+| steps                   | 1531503  |
+--------------------------------------
+--------------------------------------
+| % time spent exploring  | 1        |
+| episodes                | 1000     |
+| mean 100 episode reward | 19.5     |
+| steps                   | 1707568  |
+--------------------------------------
+Saving model due to mean reward increase: 19.7 -> 19.8
+--------------------------------------
+| % time spent exploring  | 1        |
+| episodes                | 1100     |
+| mean 100 episode reward | 19.7     |
+| steps                   | 1880100  |
+--------------------------------------
+Restored model with mean reward: 19.8
+/users/ai/x7yw4/miniconda3/envs/FYP/lib/python3.6/site-packages/gym/envs/registration.py:14: PkgResourcesDeprecationWarning: Parameters to load are deprecated.  Call .resolve and .require separately.
+  result = entry_point.load(False)
+/users/ai/x7yw4/miniconda3/envs/FYP/lib/python3.6/site-packages/numpy/core/fromnumeric.py:2920: RuntimeWarning: Mean of empty slice.
+  out=out, **kwargs)
+/users/ai/x7yw4/miniconda3/envs/FYP/lib/python3.6/site-packages/numpy/core/_methods.py:85: RuntimeWarning: invalid value encountered in double_scalars
+  ret = ret.dtype.type(ret / rcount)
