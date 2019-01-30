@@ -129,6 +129,7 @@ def build_q_func(network, hiddens=[256], dueling=True, layer_norm=False, **netwo
                 q_out = state_score + action_scores_centered
             else:
                 q_out = action_scores
+                
             if concat_softmax:
                 q_out = tf.nn.softmax(q_out)
             return q_out

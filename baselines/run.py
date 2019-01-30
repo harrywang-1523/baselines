@@ -247,9 +247,10 @@ def main():
                         q_func=q_func, num_actions=env.action_space.n,
                         epsilon=1.0 / 255.0,
                     )
-                    adv_obs = craft_adv_obs(
-                        np.array(obs)[None], stochastic_adv=stochastic)[0]
 
+                    adv_obs = craft_adv_obs(
+                        np.array(obs)[None])[0]
+                    print(adv_obs)
                 actions, _, state, _ = model.step(adv_obs,S=state, M=dones)
             else:
                 actions, _, state, _ = model.step(obs,S=state, M=dones)
