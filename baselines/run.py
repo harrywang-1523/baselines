@@ -18,7 +18,8 @@ from baselines.common.vec_env.vec_normalize import VecNormalize
 
 from baselines.attacks.fast_gradient import fgm
 from baselines.deepq.utils import ObservationInput
-
+from baselines.deepq.build_graph import build_adv
+import baselines.common.tf_util as U
 
 try:
     from mpi4py import MPI
@@ -228,7 +229,6 @@ def main():
 
                 # obs = env.reset() # Dummy Observation
                 # TODO: Write perturb function that takes in obs and return adv
-
                 observation_space = env.observation_space
                 def make_obs_ph(name):
                     return ObservationInput(observation_space, name=name)
@@ -236,11 +236,20 @@ def main():
                 q_func = build_q_func(network='conv_only')
                 # net = q_func(input_placeholder=ObservationInput(env.observation_space,
                              # name='name').get(),num_actions=env.action_space.n, scope='scope')
-                net = build_act(make_obs_ph=make_obs_ph, q_func=q_func, num_actions=env.action_space.n,scope='test')
-                print(net) #function build_act.<locals>.act
-                adv_obs = fgm(net, np.asarray(obs))
-                print(adv_obs)
-                print(adv_obs.shape())
+                # net = build_act(make_obs_ph=make_obs_ph, q_func=q_func, num_actions=env.action_space.n,scope='test')
+                # print(net) #function build_act.<locals>.act
+                # adv_obs = fgm(net, np.asarray(obs))
+                # print(adv_obs)
+                # print(adv_obs.shape())
+                with tf.Session() as sess:
+                    craft_adv_obs = build_adv(
+                        make_obs_tf=make_obs_ph,
+                        q_func=q_func, num_actions=env.action_space.n,
+                        epsilon=1.0 / 255.0,
+                    )
+                    adv_obs = craft_adv_obs(
+                        np.array(obs)[None], stochastic_adv=stochastic)[0]
+
                 actions, _, state, _ = model.step(adv_obs,S=state, M=dones)
             else:
                 actions, _, state, _ = model.step(obs,S=state, M=dones)

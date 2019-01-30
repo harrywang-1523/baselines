@@ -96,7 +96,7 @@ def build_q_func(network, hiddens=[256], dueling=True, layer_norm=False, **netwo
         from baselines.common.models import get_network_builder
         network = get_network_builder(network)(**network_kwargs)
 
-    def q_func_builder(input_placeholder, num_actions, scope, reuse=False):
+    def q_func_builder(input_placeholder, num_actions, scope, reuse=False, concat_softmax=False):
         with tf.variable_scope(scope, reuse=reuse):
             latent = network(input_placeholder)
             if isinstance(latent, tuple):
@@ -129,6 +129,8 @@ def build_q_func(network, hiddens=[256], dueling=True, layer_norm=False, **netwo
                 q_out = state_score + action_scores_centered
             else:
                 q_out = action_scores
+            if concat_softmax:
+                q_out = tf.nn.softmax(q_out)
             return q_out
 
     return q_func_builder
