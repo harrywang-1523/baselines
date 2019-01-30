@@ -13,10 +13,12 @@ from baselines import logger
 from importlib import import_module
 
 from baselines.deepq.models import build_q_func
-
+from baselines.deepq.build_graph import build_act # TODO: build_train??
 from baselines.common.vec_env.vec_normalize import VecNormalize
 
 from baselines.attacks.fast_gradient import fgm
+from baselines.deepq.utils import ObservationInput
+
 
 try:
     from mpi4py import MPI
@@ -86,7 +88,7 @@ def train(args, extra_args):
         **alg_kwargs
     )
 
-    return model, env
+    return model, env # model is an ActWrapper
 
 
 def build_env(args):
@@ -212,12 +214,10 @@ def main():
         env = build_env(args)
         obs = env.reset()
 
-        obs_np = np.asarray(obs)
-        print(obs_np.shape) # (84, 84, 4)
-
         def initialize_placeholders(nlstm=128,**kwargs):
             return np.zeros((args.num_env or 1, 2*nlstm)), np.zeros((1))
         state, dones = initialize_placeholders(**extra_args)
+
         while True:
             if args.adv:
                 # fgsm = FastGradientMethod(model)
@@ -229,9 +229,22 @@ def main():
                 # obs = env.reset() # Dummy Observation
                 # TODO: Write perturb function that takes in obs and return adv
 
-                net = build_q_func(network='conv_only')
-                adv_obs = fgm(net, obs)
-            actions, _, state, _ = model.step(obs,S=state, M=dones)
+                observation_space = env.observation_space
+                def make_obs_ph(name):
+                    return ObservationInput(observation_space, name=name)
+
+                q_func = build_q_func(network='conv_only')
+                # net = q_func(input_placeholder=ObservationInput(env.observation_space,
+                             # name='name').get(),num_actions=env.action_space.n, scope='scope')
+                net = build_act(make_obs_ph=make_obs_ph, q_func=q_func, num_actions=env.action_space.n,scope='test')
+                print(net) #function build_act.<locals>.act
+                adv_obs = fgm(net, np.asarray(obs))
+                print(adv_obs)
+                print(adv_obs.shape())
+                actions, _, state, _ = model.step(adv_obs,S=state, M=dones)
+            else:
+                actions, _, state, _ = model.step(obs,S=state, M=dones)
+
             obs, _, done, _ = env.step(actions)
             env.render()
             done = done.any() if isinstance(done, np.ndarray) else done
