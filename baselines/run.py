@@ -217,12 +217,12 @@ def main():
         env = build_env(args)
         obs = env.reset()
 
-        frame_stack = np.array(obs) # (84, 84, 4)
-        frames = np.transpose(frame_stack, (2, 0, 1))
-
-        # print(frames[0])
-        img = Image.fromarray(frames[0], 'L')
-        img.show()
+        # frame_stack = np.array(obs) # (84, 84, 4)
+        # frames = np.transpose(frame_stack, (2, 0, 1))
+        #
+        # # print(frames[0])
+        # img = Image.fromarray(frames[0], 'L')
+        # img.show()
         #
         # imageWithColor = img.convert("P", palette=Image.ADAPTIVE, colors=8)
         # imageWithColor.show()
@@ -232,6 +232,8 @@ def main():
 
         while True:
             if args.adv:
+
+                g = tf.Graph()
                 # fgsm = FastGradientMethod(model)
                 # fgsm_params = {'eps': 0.3, 'clip_min': 0., 'clip_max': 1.}
                 # adv_obs = fgsm.generate(obs[1:], **fgsm_params)
@@ -244,7 +246,6 @@ def main():
                 def make_obs_ph(name):
                     return ObservationInput(observation_space, name=name)
 
-                q_func = build_q_func(network='conv_only')
                 # net = q_func(input_placeholder=ObservationInput(env.observation_space,
                              # name='name').get(),num_actions=env.action_space.n, scope='scope')
                 # net = build_act(make_obs_ph=make_obs_ph, q_func=q_func, num_actions=env.action_space.n,scope='test')
@@ -252,19 +253,24 @@ def main():
                 # adv_obs = fgm(net, np.asarray(obs))
                 # print(adv_obs)
                 # print(adv_obs.shape())
-                with tf.Session() as sess:
-                    craft_adv_obs = build_adv(
-                        make_obs_tf=make_obs_ph,
-                        q_func=q_func, num_actions=env.action_space.n,
-                        epsilon=1.0 / 255.0,
-                    )
+                with g.as_default():
+                    with tf.Session() as sess:
+                        q_func = build_q_func(network='conv_only')
+                        act = build_act(make_obs_ph=make_obs_ph, q_func=q_func, num_actions=env.action_space.n,scope='deepq')
+                        craft_adv_obs = build_adv(
+                            make_obs_tf=make_obs_ph,
+                            q_func=q_func, num_actions=env.action_space.n,
+                            epsilon=1.0 / 255.0,
+                        )
 
-                    adv_obs = craft_adv_obs(
-                        np.array(obs)[None])[0]
-                    print(adv_obs)
-                actions, _, state, _ = model.step(adv_obs,S=state, M=dones)
+                        adv_obs = craft_adv_obs(
+                            np.array(obs)[None])[0]
+                        print(adv_obs)
+                    # actions, _, state, _ = model.step(adv_obs,S=state, M=dones)
+                        actions = act(np.array(adv_obs)[None])[0]
             else:
-                actions, _, state, _ = model.step(obs,S=state, M=dones)
+                # actions, _, state, _ = model.step(obs,S=state, M=dones)
+                actions = act(np.array(obs)[None])[0]
 
             obs, _, done, _ = env.step(actions)
             env.render()
