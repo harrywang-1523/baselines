@@ -38,6 +38,8 @@ except ImportError:
 
 # Import Cleverhans Components
 from cleverhans.attacks import FastGradientMethod
+import matplotlib.pyplot as plt
+from PIL import Image
 
 
 _game_envs = defaultdict(set)
@@ -215,6 +217,15 @@ def main():
         env = build_env(args)
         obs = env.reset()
 
+        frame_stack = np.array(obs) # (84, 84, 4)
+        frames = np.transpose(frame_stack, (2, 0, 1))
+
+        # print(frames[0])
+        img = Image.fromarray(frames[0], 'L')
+        img.show()
+        #
+        # imageWithColor = img.convert("P", palette=Image.ADAPTIVE, colors=8)
+        # imageWithColor.show()
         def initialize_placeholders(nlstm=128,**kwargs):
             return np.zeros((args.num_env or 1, 2*nlstm)), np.zeros((1))
         state, dones = initialize_placeholders(**extra_args)
