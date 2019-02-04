@@ -62,6 +62,9 @@ def _cnn_to_mlp(convs, hiddens, dueling, inpt, num_actions, scope, reuse=False, 
             action_scores_mean = tf.reduce_mean(action_scores, 1)
             action_scores_centered = action_scores - tf.expand_dims(action_scores_mean, 1)
             q_out = state_score + action_scores_centered
+
+            print(q_out)
+            print(q_out.shape)
         else:
             q_out = action_scores
         return q_out
@@ -97,6 +100,7 @@ def build_q_func(network, hiddens=[256], dueling=True, layer_norm=False, **netwo
         network = get_network_builder(network)(**network_kwargs)
 
     def q_func_builder(input_placeholder, num_actions, scope, reuse=False, concat_softmax=False):
+        # tf.initialize_all_variables()
         with tf.variable_scope(scope, reuse=reuse):
             latent = network(input_placeholder)
             if isinstance(latent, tuple):
@@ -129,7 +133,7 @@ def build_q_func(network, hiddens=[256], dueling=True, layer_norm=False, **netwo
                 q_out = state_score + action_scores_centered
             else:
                 q_out = action_scores
-                
+
             if concat_softmax:
                 q_out = tf.nn.softmax(q_out)
             return q_out

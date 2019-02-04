@@ -16,7 +16,6 @@ from baselines.deepq.models import build_q_func
 from baselines.deepq.build_graph import build_act # TODO: build_train??
 from baselines.common.vec_env.vec_normalize import VecNormalize
 
-from baselines.attacks.fast_gradient import fgm
 from baselines.deepq.utils import ObservationInput
 from baselines.deepq.build_graph import build_adv
 import baselines.common.tf_util as U
@@ -105,6 +104,8 @@ def build_env(args):
 
     if env_type in {'atari', 'retro'}:
         if alg == 'deepq':
+            # print(env_id) #PongNoFrameskip-v4
+            # print(env_type) #Atari
             env = make_env(env_id, env_type, seed=seed, wrapper_kwargs={'frame_stack': True})
         elif alg == 'trpo_mpi':
             env = make_env(env_id, env_type, seed=seed)
@@ -269,8 +270,9 @@ def main():
                     # actions, _, state, _ = model.step(adv_obs,S=state, M=dones)
                         actions = act(np.array(adv_obs)[None])[0]
             else:
-                # actions, _, state, _ = model.step(obs,S=state, M=dones)
-                actions = act(np.array(obs)[None])[0]
+                actions, _, state, _ = model.step(obs,S=state, M=dones)
+                # print(actions) # A single number array [2], [3] ....
+                # actions = act(np.  array(obs)[None])[0]
 
             obs, _, done, _ = env.step(actions)
             env.render()
