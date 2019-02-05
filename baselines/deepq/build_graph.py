@@ -153,7 +153,6 @@ def build_adv(make_obs_tf, q_func, num_actions, epsilon):
             "eps", (), initializer=tf.constant_initializer(0))
         update_eps_expr_adv = eps.assign(
             tf.cond(update_eps_ph_adv >= 0, lambda: update_eps_ph_adv, lambda: eps))
-        print("==========================================")
 
         def wrapper(x):
             return q_func(x, num_actions, scope="q_func", reuse=True, concat_softmax=False) # In order to get logits

@@ -218,61 +218,39 @@ def main():
         env = build_env(args)
         obs = env.reset()
 
-        # frame_stack = np.array(obs) # (84, 84, 4)
-        # frames = np.transpose(frame_stack, (2, 0, 1))
-        #
-        # # print(frames[0])
-        # img = Image.fromarray(frames[0], 'L')
-        # img.show()
-        #
-        # imageWithColor = img.convert("P", palette=Image.ADAPTIVE, colors=8)
-        # imageWithColor.show()
         def initialize_placeholders(nlstm=128,**kwargs):
             return np.zeros((args.num_env or 1, 2*nlstm)), np.zeros((1))
         state, dones = initialize_placeholders(**extra_args)
 
+        num_episodes = 0
+        num_moves = 0
+        num_transfer = 0
         while True:
             if args.adv:
-
                 g = tf.Graph()
-                # fgsm = FastGradientMethod(model)
-                # fgsm_params = {'eps': 0.3, 'clip_min': 0., 'clip_max': 1.}
-                # adv_obs = fgsm.generate(obs[1:], **fgsm_params)
-                # Observation is a four frame stack?
-                # Do not know what obs is (LazyFrame?)
-
-                # obs = env.reset() # Dummy Observation
-                # TODO: Write perturb function that takes in obs and return adv
-                observation_space = env.observation_space
-                def make_obs_ph(name):
-                    return ObservationInput(observation_space, name=name)
-
-                # net = q_func(input_placeholder=ObservationInput(env.observation_space,
-                             # name='name').get(),num_actions=env.action_space.n, scope='scope')
-                # net = build_act(make_obs_ph=make_obs_ph, q_func=q_func, num_actions=env.action_space.n,scope='test')
-                # print(net) #function build_act.<locals>.act
-                # adv_obs = fgm(net, np.asarray(obs))
-                # print(adv_obs)
-                # print(adv_obs.shape())
                 with g.as_default():
                     with tf.Session() as sess:
                         q_func = build_q_func(network='conv_only')
-                        act = build_act(make_obs_ph=make_obs_ph, q_func=q_func, num_actions=env.action_space.n,scope='deepq')
+                        act = build_act(
+                            make_obs_ph=lambda name: ObservationInput(env.observation_space, name=name),
+                            q_func= q_func,
+                            num_actions=env.action_space.n
+                        )
                         craft_adv_obs = build_adv(
-                            make_obs_tf=make_obs_ph,
+                            make_obs_tf=lambda name: ObservationInput(env.observation_space, name=name),
                             q_func=q_func, num_actions=env.action_space.n,
                             epsilon=1.0 / 255.0,
                         )
-
+                        sess.run(tf.global_variables_initializer())
                         adv_obs = craft_adv_obs(
                             np.array(obs)[None])[0]
-                        print(adv_obs)
-                    # actions, _, state, _ = model.step(adv_obs,S=state, M=dones)
                         actions = act(np.array(adv_obs)[None])[0]
+                        actions2 = act(np.array(obs)[None])[0]
+                        num_moves = num_moves + 1
+                        if (actions != actions2):
+                            num_transfer = num_transfer + 1
             else:
                 actions, _, state, _ = model.step(obs,S=state, M=dones)
-                # print(actions) # A single number array [2], [3] ....
-                # actions = act(np.  array(obs)[None])[0]
 
             obs, _, done, _ = env.step(actions)
             env.render()
@@ -280,6 +258,11 @@ def main():
 
             if done:
                 obs = env.reset()
+                print(f'Episode {num_episodes}')
+                print('Percentage of successful attacks: {}'.format(100 * float(num_transfer) / num_moves))
+                num_moves = 0
+                num_transfer = 0
+                num_episodes = num_episodes + 1
 
         env.close()
 
