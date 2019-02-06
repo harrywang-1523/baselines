@@ -225,22 +225,26 @@ def main():
         num_episodes = 0
         num_moves = 0
         num_transfer = 0
+
+        g = tf.Graph()
+        if args.adv:
+            with g.as_default():
+                with tf.Session() as sess:
+                    q_func = build_q_func(network='conv_only')
+                    act = build_act(
+                        make_obs_ph=lambda name: ObservationInput(env.observation_space, name=name),
+                        q_func= q_func,
+                        num_actions=env.action_space.n
+                    )
+                    craft_adv_obs = build_adv(
+                        make_obs_tf=lambda name: ObservationInput(env.observation_space, name=name),
+                        q_func=q_func, num_actions=env.action_space.n,
+                        epsilon=1.0 / 255.0,
+                    )
         while True:
             if args.adv:
-                g = tf.Graph()
                 with g.as_default():
                     with tf.Session() as sess:
-                        q_func = build_q_func(network='conv_only')
-                        act = build_act(
-                            make_obs_ph=lambda name: ObservationInput(env.observation_space, name=name),
-                            q_func= q_func,
-                            num_actions=env.action_space.n
-                        )
-                        craft_adv_obs = build_adv(
-                            make_obs_tf=lambda name: ObservationInput(env.observation_space, name=name),
-                            q_func=q_func, num_actions=env.action_space.n,
-                            epsilon=1.0 / 255.0,
-                        )
                         sess.run(tf.global_variables_initializer())
                         adv_obs = craft_adv_obs(
                             np.array(obs)[None])[0]
