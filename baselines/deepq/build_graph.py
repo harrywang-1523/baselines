@@ -97,6 +97,7 @@ import tensorflow as tf
 import baselines.common.tf_util as U
 from cleverhans.attacks import FastGradientMethod, BasicIterativeMethod, CarliniWagnerL2
 from cleverhans.model import CallableModelWrapper
+import numpy as np
 
 def scope_vars(scope, trainable_only=False):
     """
@@ -158,8 +159,12 @@ def build_adv(make_obs_tf, q_func, num_actions, epsilon):
             return q_func(x, num_actions, scope="q_func", reuse=True, concat_softmax=False) # In order to get logits
         adversary = FastGradientMethod(CallableModelWrapper( #Logits/probs
             wrapper, 'logits'), sess=U.get_session())
-        adv_observations = adversary.generate(
-            obs_tf_in.get(), eps=epsilon, clip_min=0, clip_max=1.0, ord=1) * 255.0
+        adv_observations = adversary.generate(obs_tf_in.get(), eps=epsilon, ord=1)
+            # obs_tf_in.get(), eps=epsilon, clip_min=0, clip_max=1.0, ord=np.inf) * 255.0
+        adv_observations = tf.round(adv_observations)
+        # adv_observations = tf.Print(adv_observations, [adv_observations], message='Value of the adversary observation is : ')
+        # [[[[255 255 255...]]]...]
+
         craft_adv_obs = U.function(inputs=[obs_tf_in, stochastic_ph_adv, update_eps_ph_adv],
                                    outputs=adv_observations,
                                    givens={update_eps_ph_adv: -1.0,

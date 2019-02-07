@@ -5,7 +5,6 @@ import gym
 from collections import defaultdict
 import tensorflow as tf
 import numpy as np
-#test
 from baselines.common.vec_env.vec_frame_stack import VecFrameStack
 from baselines.common.cmd_util import common_arg_parser, parse_unknown_args, make_vec_env, make_env
 from baselines.common.tf_util import get_session
@@ -194,7 +193,6 @@ def parse_cmdline_kwargs(args):
 
 def main():
     # configure logger, disable logging in child MPI processes (with rank > 0)
-
     arg_parser = common_arg_parser()
     args, unknown_args = arg_parser.parse_known_args()
     extra_args = parse_cmdline_kwargs(unknown_args)
@@ -217,7 +215,7 @@ def main():
         logger.log("Running trained model")
         env = build_env(args)
         obs = env.reset()
-
+        action_meanings = env.unwrapped.get_action_meanings()
         def initialize_placeholders(nlstm=128,**kwargs):
             return np.zeros((args.num_env or 1, 2*nlstm)), np.zeros((1))
         state, dones = initialize_placeholders(**extra_args)
@@ -227,6 +225,7 @@ def main():
         num_transfer = 0
 
         g = tf.Graph()
+
         if args.adv:
             with g.as_default():
                 with tf.Session() as sess:
@@ -235,27 +234,39 @@ def main():
                         make_obs_ph=lambda name: ObservationInput(env.observation_space, name=name),
                         q_func= q_func,
                         num_actions=env.action_space.n
-                    )
+                    ) # AVOID ValueError: Variable deepq/q_func/convnet/Conv/weights does not exist, or was not created with tf.get_variable()
                     craft_adv_obs = build_adv(
                         make_obs_tf=lambda name: ObservationInput(env.observation_space, name=name),
-                        q_func=q_func, num_actions=env.action_space.n,
-                        epsilon=1.0 / 255.0,
+                        q_func=q_func, num_actions=env.action_space.n, epsilon= 0.005
+                            # epsilon=1.0 / 255.0 # Maximum allowable change
                     )
         while True:
+            num_moves = num_moves + 1
             if args.adv:
                 with g.as_default():
                     with tf.Session() as sess:
                         sess.run(tf.global_variables_initializer())
                         adv_obs = craft_adv_obs(
                             np.array(obs)[None])[0]
-                        actions = act(np.array(adv_obs)[None])[0]
-                        actions2 = act(np.array(obs)[None])[0]
-                        num_moves = num_moves + 1
+                        # print(adv_obs[:,:,0]) All are 255.0
+                        # actions = act(np.array(adv_obs)[None])[0]
+                        # actions2 = act(np.array(obs)[None])[0]
+
+                        actions, _, state, _ = model.step(obs,S=state, M=dones)
+                        actions2, _, state, _ = model.step(adv_obs,S=state, M=dones)
+
+                        # print('minimum of obs: {}, maximum of obs: {}'.format(np.min(obs[:,:,0]), np.max(obs[:,:,0])))
+                        # print('minimum of adv_obs: {}, maximum of adv_obs: {}'.format(np.min(adv_obs[:,:,0]), np.max(adv_obs[:,:,0])))
                         if (actions != actions2):
+                            print('Action before: {}, Action after: {}'.format(
+                                  action_meanings[actions], action_meanings[actions2]))
+                            # perturbation = adv_obs[:,:,0] - obs[:,:,0]
+                            # print(np.max(perturbation))
+                            # img = Image.fromarray(perturbation, mode='L')
+                            # img.show()
                             num_transfer = num_transfer + 1
             else:
                 actions, _, state, _ = model.step(obs,S=state, M=dones)
-
             obs, _, done, _ = env.step(actions)
             env.render()
             done = done.any() if isinstance(done, np.ndarray) else done
