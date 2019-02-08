@@ -230,11 +230,6 @@ def main():
             with g.as_default():
                 with tf.Session() as sess:
                     q_func = build_q_func(network='conv_only')
-                    act = build_act(
-                        make_obs_ph=lambda name: ObservationInput(env.observation_space, name=name),
-                        q_func= q_func,
-                        num_actions=env.action_space.n
-                    ) # AVOID ValueError: Variable deepq/q_func/convnet/Conv/weights does not exist, or was not created with tf.get_variable()
                     craft_adv_obs = build_adv(
                         make_obs_tf=lambda name: ObservationInput(env.observation_space, name=name),
                         q_func=q_func, num_actions=env.action_space.n, epsilon= 0.005
@@ -251,20 +246,18 @@ def main():
                         # print(adv_obs[:,:,0]) All are 255.0
                         # actions = act(np.array(adv_obs)[None])[0]
                         # actions2 = act(np.array(obs)[None])[0]
-
-                        actions, _, state, _ = model.step(obs,S=state, M=dones)
-                        actions2, _, state, _ = model.step(adv_obs,S=state, M=dones)
-
-                        # print('minimum of obs: {}, maximum of obs: {}'.format(np.min(obs[:,:,0]), np.max(obs[:,:,0])))
-                        # print('minimum of adv_obs: {}, maximum of adv_obs: {}'.format(np.min(adv_obs[:,:,0]), np.max(adv_obs[:,:,0])))
-                        if (actions != actions2):
-                            print('Action before: {}, Action after: {}'.format(
-                                  action_meanings[actions], action_meanings[actions2]))
-                            # perturbation = adv_obs[:,:,0] - obs[:,:,0]
-                            # print(np.max(perturbation))
-                            # img = Image.fromarray(perturbation, mode='L')
-                            # img.show()
-                            num_transfer = num_transfer + 1
+                actions, _, state, _ = model.step(obs,S=state, M=dones)
+                actions2, _, state, _ = model.step(adv_obs,S=state, M=dones)
+                # print('minimum of obs: {}, maximum of obs: {}'.format(np.min(obs[:,:,0]), np.max(obs[:,:,0])))
+                # print('minimum of adv_obs: {}, maximum of adv_obs: {}'.format(np.min(adv_obs[:,:,0]), np.max(adv_obs[:,:,0])))
+                if (actions != actions2):
+                    print('Action before: {}, Action after: {}'.format(
+                          action_meanings[actions[0]], action_meanings[actions2[0]]))
+                    # perturbation = adv_obs[:,:,0] - obs[:,:,0]
+                    # print(np.max(perturbation))
+                    # img = Image.fromarray(perturbation, mode='L')
+                    # img.show()
+                    num_transfer = num_transfer + 1
             else:
                 actions, _, state, _ = model.step(obs,S=state, M=dones)
             obs, _, done, _ = env.step(actions)

@@ -156,10 +156,10 @@ def build_adv(make_obs_tf, q_func, num_actions, epsilon):
             tf.cond(update_eps_ph_adv >= 0, lambda: update_eps_ph_adv, lambda: eps))
 
         def wrapper(x):
-            return q_func(x, num_actions, scope="q_func", reuse=True, concat_softmax=False) # In order to get logits
+            return q_func(x, num_actions, scope="q_func", concat_softmax=False) # In order to get logits
         adversary = FastGradientMethod(CallableModelWrapper( #Logits/probs
             wrapper, 'logits'), sess=U.get_session())
-        adv_observations = adversary.generate(obs_tf_in.get(), eps=epsilon, ord=1)
+        adv_observations = adversary.generate(obs_tf_in.get(), eps=epsilon, ord=np.inf)
             # obs_tf_in.get(), eps=epsilon, clip_min=0, clip_max=1.0, ord=np.inf) * 255.0
         adv_observations = tf.round(adv_observations)
         # adv_observations = tf.Print(adv_observations, [adv_observations], message='Value of the adversary observation is : ')
