@@ -100,7 +100,6 @@ def build_q_func(network, hiddens=[256], dueling=True, layer_norm=False, **netwo
         network = get_network_builder(network)(**network_kwargs)
 
     def q_func_builder(input_placeholder, num_actions, scope='q_func', reuse=tf.AUTO_REUSE, concat_softmax=False):
-        # tf.initialize_all_variables()
         with tf.variable_scope(scope, reuse=reuse):
             latent = network(input_placeholder)
             if isinstance(latent, tuple):

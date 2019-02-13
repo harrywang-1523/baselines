@@ -1,0 +1,3 @@
+Logging to /users/ai/x7yw4/experiments/log/pong/adv_reverse_testtime/
+Loaded model from ~/experiments/saved_models/pong-2M_deepq
+Running trained model

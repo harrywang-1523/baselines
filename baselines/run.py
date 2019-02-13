@@ -173,8 +173,6 @@ def get_learn_function_defaults(alg, env_type):
         kwargs = {}
     return kwargs
 
-
-
 def parse_cmdline_kwargs(args):
     '''
     convert a list of '='-spaced command-line arguments to a dictionary, evaluating python objects when possible
@@ -223,56 +221,73 @@ def main():
         num_episodes = 0
         num_moves = 0
         num_transfer = 0
-
+        step = 0
+    if args.adv:
         g = tf.Graph()
-
+        with g.as_default():
+            with tf.Session() as sess:
+                q_func = build_q_func(network='conv_only')
+                craft_adv_obs = build_adv(
+                    make_obs_tf=lambda name: ObservationInput(env.observation_space, name=name),
+                    q_func=q_func, num_actions=env.action_space.n, epsilon= 0.01
+                )
+    while True:
+        step = step + 1
+        num_moves = num_moves + 1
         if args.adv:
             with g.as_default():
                 with tf.Session() as sess:
-                    q_func = build_q_func(network='conv_only')
-                    craft_adv_obs = build_adv(
-                        make_obs_tf=lambda name: ObservationInput(env.observation_space, name=name),
-                        q_func=q_func, num_actions=env.action_space.n, epsilon= 0.005
-                            # epsilon=1.0 / 255.0 # Maximum allowable change
-                    )
-        while True:
-            num_moves = num_moves + 1
-            if args.adv:
-                with g.as_default():
-                    with tf.Session() as sess:
-                        sess.run(tf.global_variables_initializer())
-                        adv_obs = craft_adv_obs(
-                            np.array(obs)[None])[0]
-                        # print(adv_obs[:,:,0]) All are 255.0
-                        # actions = act(np.array(adv_obs)[None])[0]
-                        # actions2 = act(np.array(obs)[None])[0]
-                actions, _, state, _ = model.step(obs,S=state, M=dones)
-                actions2, _, state, _ = model.step(adv_obs,S=state, M=dones)
-                # print('minimum of obs: {}, maximum of obs: {}'.format(np.min(obs[:,:,0]), np.max(obs[:,:,0])))
-                # print('minimum of adv_obs: {}, maximum of adv_obs: {}'.format(np.min(adv_obs[:,:,0]), np.max(adv_obs[:,:,0])))
-                if (actions != actions2):
-                    print('Action before: {}, Action after: {}'.format(
-                          action_meanings[actions[0]], action_meanings[actions2[0]]))
-                    # perturbation = adv_obs[:,:,0] - obs[:,:,0]
-                    # print(np.max(perturbation))
-                    # img = Image.fromarray(perturbation, mode='L')
-                    # img.show()
-                    num_transfer = num_transfer + 1
-            else:
-                actions, _, state, _ = model.step(obs,S=state, M=dones)
-            obs, _, done, _ = env.step(actions)
-            env.render()
-            done = done.any() if isinstance(done, np.ndarray) else done
+                    sess.run(tf.global_variables_initializer())
+                    adv_obs = craft_adv_obs(np.array(obs)[None])[0] * 255.0
+                    # adv_obs = np.rint(adv_obs)
+                    adv_obs = adv_obs.astype(np.uint8)
+            # print(np.array_equal(np.asarray(adv_obs[:,:,0]),np.asarray(obs[:,:,0])))
+            difference = (adv_obs[:,:,0] - obs[:,:,0])*255.0
+            # TODO: Round to the nearest integer or directly round down
+            # assert np.array_equal(difference, np.zeros((84,84), dtype=np.float32)) #no difference in terms of data
+            assert np.asarray(obs[:,:,0]).dtype == np.asarray(adv_obs[:,:,0]).dtype
+            # print('type of obs: {}, type of adv_obs: {}'.format(np.asarray(obs[:,:,0]).dtype, np.asarray(adv_obs[:,:,0]).dtype))
+            # print('minimum of difference: {}, maximum of difference: {}'.format(np.min(difference), np.max(difference)))
+            # img1 = Image.fromarray(np.asarray(obs[:,:,0]), mode='L')
+            # img2 = Image.fromarray(np.asarray(adv_obs[:,:,0]), mode='L')
+            #     # img3 = Image.fromarray(obs[:,:,0] - adv_obs[:,:,0], mode='L')
+            # img1.show()
+            # img2.show()
+            # img2.save('/Users/harry/Downloads/image/eps=0_01/'+ str(step)+ '.png')
 
-            if done:
-                obs = env.reset()
-                print(f'Episode {num_episodes}')
-                print('Percentage of successful attacks: {}'.format(100 * float(num_transfer) / num_moves))
-                num_moves = 0
-                num_transfer = 0
-                num_episodes = num_episodes + 1
+            adv_action, _, _ , _ = model.step(adv_obs,S=state, M=dones)
+            action, _, _, _ = model.step(obs,S=state, M=dones)
+            # print('minimum of obs: {}, maximum of obs: {}'.format(np.min(obs[:,:,0]), np.max(obs[:,:,0])))
+            # print('minimum of adv_obs: {}, maximum of adv_obs: {}'.format(np.min(adv_obs[:,:,0]), np.max(adv_obs[:,:,0])))
+            if (adv_action != action):
+                print('Action before: {}, Action after: {}'.format(
+                      action_meanings[action[0]], action_meanings[adv_action[0]]))
+                num_transfer = num_transfer + 1
+                # if np.max(perturbation == 100):
+                # # print('The maximum of perturbation is : {}'.format(np.max(perturbation)))
+            # img1 = Image.fromarray(obs[:,:,0], mode='L')
+            # img2 = Image.fromarray(adv_obs[:,:,0], mode='L')
+            #     # img3 = Image.fromarray(obs[:,:,0] - adv_obs[:,:,0], mode='L')
+            # img1.show()
+            # img2.show()
+                # img3.show()
+            if state is None:
+                _, _,state, _ = model.step(adv_obs, S=state, M=dones)
+        else:
+            action, _, state, _ = model.step(obs,S=state, M=dones)
+        obs, _, done, _ = env.step(adv_action)
+        env.render()
+        done = done.any() if isinstance(done, np.ndarray) else done
 
-        env.close()
+        if done:
+            obs = env.reset()
+            print(f'Episode {num_episodes}')
+            print('Percentage of successful attacks: {}'.format(100 * float(num_transfer) / num_moves))
+            num_moves = 0
+            num_transfer = 0
+            num_episodes = num_episodes + 1
+
+    env.close()
 
 if __name__ == '__main__':
     main()

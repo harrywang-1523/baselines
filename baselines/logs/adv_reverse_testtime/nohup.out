@@ -1,0 +1,156 @@
+Logging to /users/ai/x7yw4/experiments/log/pong/adv_reverse_testtime/
+Logging to /users/ai/x7yw4/experiments/log/pong/adv_reverse_testtime/
+2019-02-08 13:06:20.465872: I tensorflow/core/platform/cpu_feature_guard.cc:141] Your CPU supports instructions that this TensorFlow binary was not compiled to use: SSE4.1 SSE4.2 AVX AVX2 FMA
+2019-02-08 13:06:20.720210: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1432] Found device 0 with properties: 
+name: Quadro P6000 major: 6 minor: 1 memoryClockRate(GHz): 1.645
+pciBusID: 0000:82:00.0
+totalMemory: 23.88GiB freeMemory: 23.70GiB
+2019-02-08 13:06:20.895939: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1432] Found device 1 with properties: 
+name: GeForce GTX 1080 Ti major: 6 minor: 1 memoryClockRate(GHz): 1.582
+pciBusID: 0000:01:00.0
+totalMemory: 10.92GiB freeMemory: 10.74GiB
+2019-02-08 13:06:21.086153: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1432] Found device 2 with properties: 
+name: GeForce GTX 1080 Ti major: 6 minor: 1 memoryClockRate(GHz): 1.582
+pciBusID: 0000:02:00.0
+totalMemory: 10.92GiB freeMemory: 10.75GiB
+2019-02-08 13:06:21.088059: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1511] Adding visible gpu devices: 0, 1, 2
+2019-02-08 13:06:22.486975: I tensorflow/core/common_runtime/gpu/gpu_device.cc:982] Device interconnect StreamExecutor with strength 1 edge matrix:
+2019-02-08 13:06:22.487062: I tensorflow/core/common_runtime/gpu/gpu_device.cc:988]      0 1 2 
+2019-02-08 13:06:22.487075: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1001] 0:   N N N 
+2019-02-08 13:06:22.487082: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1001] 1:   N N Y 
+2019-02-08 13:06:22.487089: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1001] 2:   N Y N 
+2019-02-08 13:06:22.488474: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 22994 MB memory) -> physical GPU (device: 0, name: Quadro P6000, pci bus id: 0000:82:00.0, compute capability: 6.1)
+2019-02-08 13:06:22.489021: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:1 with 10389 MB memory) -> physical GPU (device: 1, name: GeForce GTX 1080 Ti, pci bus id: 0000:01:00.0, compute capability: 6.1)
+2019-02-08 13:06:22.489377: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:2 with 10398 MB memory) -> physical GPU (device: 2, name: GeForce GTX 1080 Ti, pci bus id: 0000:02:00.0, compute capability: 6.1)
+env_type: atari
+Training deepq on atari:PongNoFrameskip-v4 with arguments 
+{'network': 'conv_only', 'lr': 0.0001, 'buffer_size': 10000, 'exploration_fraction': 0.1, 'exploration_final_eps': 0.01, 'train_freq': 4, 'learning_starts': 10000, 'target_network_update_freq': 1000, 'gamma': 0.99, 'prioritized_replay': True, 'prioritized_replay_alpha': 0.6, 'checkpoint_freq': 10000, 'checkpoint_path': None, 'dueling': True, 'load_path': '~/experiments/saved_models/pong-2M_deepq'}
+Loaded model from ~/experiments/saved_models/pong-2M_deepq
+/users/ai/x7yw4/miniconda3/envs/FYP/lib/python3.6/site-packages/gym/envs/registration.py:14: PkgResourcesDeprecationWarning: Parameters to load are deprecated.  Call .resolve and .require separately.
+  result = entry_point.load(False)
+Logging to /users/ai/x7yw4/experiments/log/pong/adv_reverse_testtime/
+Logging to /users/ai/x7yw4/experiments/log/pong/adv_reverse_testtime/
+2019-02-08 13:08:40.784686: I tensorflow/core/platform/cpu_feature_guard.cc:141] Your CPU supports instructions that this TensorFlow binary was not compiled to use: SSE4.1 SSE4.2 AVX AVX2 FMA
+2019-02-08 13:08:41.045845: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1432] Found device 0 with properties: 
+name: Quadro P6000 major: 6 minor: 1 memoryClockRate(GHz): 1.645
+pciBusID: 0000:82:00.0
+totalMemory: 23.88GiB freeMemory: 23.70GiB
+2019-02-08 13:08:41.226576: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1432] Found device 1 with properties: 
+name: GeForce GTX 1080 Ti major: 6 minor: 1 memoryClockRate(GHz): 1.582
+pciBusID: 0000:01:00.0
+totalMemory: 10.92GiB freeMemory: 10.74GiB
+2019-02-08 13:08:41.419902: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1432] Found device 2 with properties: 
+name: GeForce GTX 1080 Ti major: 6 minor: 1 memoryClockRate(GHz): 1.582
+pciBusID: 0000:02:00.0
+totalMemory: 10.92GiB freeMemory: 10.75GiB
+2019-02-08 13:08:41.421793: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1511] Adding visible gpu devices: 0, 1, 2
+2019-02-08 13:08:42.871641: I tensorflow/core/common_runtime/gpu/gpu_device.cc:982] Device interconnect StreamExecutor with strength 1 edge matrix:
+2019-02-08 13:08:42.871709: I tensorflow/core/common_runtime/gpu/gpu_device.cc:988]      0 1 2 
+2019-02-08 13:08:42.871722: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1001] 0:   N N N 
+2019-02-08 13:08:42.871730: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1001] 1:   N N Y 
+2019-02-08 13:08:42.871738: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1001] 2:   N Y N 
+2019-02-08 13:08:42.873275: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 22994 MB memory) -> physical GPU (device: 0, name: Quadro P6000, pci bus id: 0000:82:00.0, compute capability: 6.1)
+2019-02-08 13:08:42.874497: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:1 with 10389 MB memory) -> physical GPU (device: 1, name: GeForce GTX 1080 Ti, pci bus id: 0000:01:00.0, compute capability: 6.1)
+2019-02-08 13:08:42.874878: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:2 with 10398 MB memory) -> physical GPU (device: 2, name: GeForce GTX 1080 Ti, pci bus id: 0000:02:00.0, compute capability: 6.1)
+env_type: atari
+Training deepq on atari:PongNoFrameskip-v4 with arguments 
+{'network': 'conv_only', 'lr': 0.0001, 'buffer_size': 10000, 'exploration_fraction': 0.1, 'exploration_final_eps': 0.01, 'train_freq': 4, 'learning_starts': 10000, 'target_network_update_freq': 1000, 'gamma': 0.99, 'prioritized_replay': True, 'prioritized_replay_alpha': 0.6, 'checkpoint_freq': 10000, 'checkpoint_path': None, 'dueling': True, 'load_path': '~/experiments/saved_models/pong-2M_deepq'}
+Loaded model from ~/experiments/saved_models/pong-2M_deepq
+Running trained model
+/users/ai/x7yw4/miniconda3/envs/FYP/lib/python3.6/site-packages/gym/envs/registration.py:14: PkgResourcesDeprecationWarning: Parameters to load are deprecated.  Call .resolve and .require separately.
+  result = entry_point.load(False)
+Traceback (most recent call last):
+  File "/users/ai/x7yw4/miniconda3/envs/FYP/lib/python3.6/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/users/ai/x7yw4/miniconda3/envs/FYP/lib/python3.6/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/home/staffd/ai/x7yw4/experiments/baselines/baselines/run.py", line 242, in <module>
+    main(sys.argv)
+  File "/home/staffd/ai/x7yw4/experiments/baselines/baselines/run.py", line 231, in main
+    env.render()
+  File "/users/ai/x7yw4/miniconda3/envs/FYP/lib/python3.6/site-packages/gym/core.py", line 275, in render
+    return self.env.render(mode, **kwargs)
+  File "/users/ai/x7yw4/miniconda3/envs/FYP/lib/python3.6/site-packages/gym/core.py", line 275, in render
+    return self.env.render(mode, **kwargs)
+  File "/users/ai/x7yw4/miniconda3/envs/FYP/lib/python3.6/site-packages/gym/core.py", line 275, in render
+    return self.env.render(mode, **kwargs)
+  [Previous line repeated 6 more times]
+  File "/users/ai/x7yw4/miniconda3/envs/FYP/lib/python3.6/site-packages/gym/envs/atari/atari_env.py", line 107, in render
+    from gym.envs.classic_control import rendering
+  File "/users/ai/x7yw4/miniconda3/envs/FYP/lib/python3.6/site-packages/gym/envs/classic_control/rendering.py", line 23, in <module>
+    from pyglet.gl import *
+  File "/users/ai/x7yw4/miniconda3/envs/FYP/lib/python3.6/site-packages/pyglet/gl/__init__.py", line 239, in <module>
+    import pyglet.window
+  File "/users/ai/x7yw4/miniconda3/envs/FYP/lib/python3.6/site-packages/pyglet/window/__init__.py", line 1896, in <module>
+    gl._create_shadow_window()
+  File "/users/ai/x7yw4/miniconda3/envs/FYP/lib/python3.6/site-packages/pyglet/gl/__init__.py", line 208, in _create_shadow_window
+    _shadow_window = Window(width=1, height=1, visible=False)
+  File "/users/ai/x7yw4/miniconda3/envs/FYP/lib/python3.6/site-packages/pyglet/window/xlib/__init__.py", line 166, in __init__
+    super(XlibWindow, self).__init__(*args, **kwargs)
+  File "/users/ai/x7yw4/miniconda3/envs/FYP/lib/python3.6/site-packages/pyglet/window/__init__.py", line 501, in __init__
+    display = get_platform().get_default_display()
+  File "/users/ai/x7yw4/miniconda3/envs/FYP/lib/python3.6/site-packages/pyglet/window/__init__.py", line 1845, in get_default_display
+    return pyglet.canvas.get_display()
+  File "/users/ai/x7yw4/miniconda3/envs/FYP/lib/python3.6/site-packages/pyglet/canvas/__init__.py", line 82, in get_display
+    return Display()
+  File "/users/ai/x7yw4/miniconda3/envs/FYP/lib/python3.6/site-packages/pyglet/canvas/xlib.py", line 86, in __init__
+    raise NoSuchDisplayException('Cannot connect to "%s"' % name)
+pyglet.canvas.xlib.NoSuchDisplayException: Cannot connect to "None"
+Logging to /users/ai/x7yw4/experiments/log/pong/adv_reverse_testtime/
+Logging to /users/ai/x7yw4/experiments/log/pong/adv_reverse_testtime/
+2019-02-08 13:12:20.288665: I tensorflow/core/platform/cpu_feature_guard.cc:141] Your CPU supports instructions that this TensorFlow binary was not compiled to use: SSE4.1 SSE4.2 AVX AVX2 FMA
+2019-02-08 13:12:20.566334: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1432] Found device 0 with properties: 
+name: Quadro P6000 major: 6 minor: 1 memoryClockRate(GHz): 1.645
+pciBusID: 0000:82:00.0
+totalMemory: 23.88GiB freeMemory: 23.70GiB
+2019-02-08 13:12:20.753698: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1432] Found device 1 with properties: 
+name: GeForce GTX 1080 Ti major: 6 minor: 1 memoryClockRate(GHz): 1.582
+pciBusID: 0000:01:00.0
+totalMemory: 10.92GiB freeMemory: 10.74GiB
+2019-02-08 13:12:20.950936: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1432] Found device 2 with properties: 
+name: GeForce GTX 1080 Ti major: 6 minor: 1 memoryClockRate(GHz): 1.582
+pciBusID: 0000:02:00.0
+totalMemory: 10.92GiB freeMemory: 10.75GiB
+2019-02-08 13:12:20.952876: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1511] Adding visible gpu devices: 0, 1, 2
+2019-02-08 13:12:22.353151: I tensorflow/core/common_runtime/gpu/gpu_device.cc:982] Device interconnect StreamExecutor with strength 1 edge matrix:
+2019-02-08 13:12:22.353211: I tensorflow/core/common_runtime/gpu/gpu_device.cc:988]      0 1 2 
+2019-02-08 13:12:22.353224: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1001] 0:   N N N 
+2019-02-08 13:12:22.353232: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1001] 1:   N N Y 
+2019-02-08 13:12:22.353240: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1001] 2:   N Y N 
+2019-02-08 13:12:22.354634: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 22994 MB memory) -> physical GPU (device: 0, name: Quadro P6000, pci bus id: 0000:82:00.0, compute capability: 6.1)
+2019-02-08 13:12:22.355178: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:1 with 10389 MB memory) -> physical GPU (device: 1, name: GeForce GTX 1080 Ti, pci bus id: 0000:01:00.0, compute capability: 6.1)
+2019-02-08 13:12:22.355556: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:2 with 10398 MB memory) -> physical GPU (device: 2, name: GeForce GTX 1080 Ti, pci bus id: 0000:02:00.0, compute capability: 6.1)
+env_type: atari
+Training deepq on atari:PongNoFrameskip-v4 with arguments 
+{'network': 'conv_only', 'lr': 0.0001, 'buffer_size': 10000, 'exploration_fraction': 0.1, 'exploration_final_eps': 0.01, 'train_freq': 4, 'learning_starts': 10000, 'target_network_update_freq': 1000, 'gamma': 0.99, 'prioritized_replay': True, 'prioritized_replay_alpha': 0.6, 'checkpoint_freq': 10000, 'checkpoint_path': None, 'dueling': True, 'load_path': '~/experiments/saved_models/pong-2M_deepq'}
+Loaded model from ~/experiments/saved_models/pong-2M_deepq
+Running trained model
+Logging to /users/ai/x7yw4/experiments/log/pong/adv_reverse_testtime/
+Logging to /users/ai/x7yw4/experiments/log/pong/adv_reverse_testtime/
+2019-02-08 13:26:45.864441: I tensorflow/core/platform/cpu_feature_guard.cc:141] Your CPU supports instructions that this TensorFlow binary was not compiled to use: SSE4.1 SSE4.2 AVX AVX2 FMA
+2019-02-08 13:26:46.139625: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1432] Found device 0 with properties: 
+name: Quadro P6000 major: 6 minor: 1 memoryClockRate(GHz): 1.645
+pciBusID: 0000:82:00.0
+totalMemory: 23.88GiB freeMemory: 23.70GiB
+2019-02-08 13:26:46.322518: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1432] Found device 1 with properties: 
+name: GeForce GTX 1080 Ti major: 6 minor: 1 memoryClockRate(GHz): 1.582
+pciBusID: 0000:01:00.0
+totalMemory: 10.92GiB freeMemory: 10.74GiB
+2019-02-08 13:26:46.503537: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1432] Found device 2 with properties: 
+name: GeForce GTX 1080 Ti major: 6 minor: 1 memoryClockRate(GHz): 1.582
+pciBusID: 0000:02:00.0
+totalMemory: 10.92GiB freeMemory: 10.75GiB
+2019-02-08 13:26:46.505452: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1511] Adding visible gpu devices: 0, 1, 2
+2019-02-08 13:26:47.899542: I tensorflow/core/common_runtime/gpu/gpu_device.cc:982] Device interconnect StreamExecutor with strength 1 edge matrix:
+2019-02-08 13:26:47.899600: I tensorflow/core/common_runtime/gpu/gpu_device.cc:988]      0 1 2 
+2019-02-08 13:26:47.899612: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1001] 0:   N N N 
+2019-02-08 13:26:47.899620: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1001] 1:   N N Y 
+2019-02-08 13:26:47.899627: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1001] 2:   N Y N 
+2019-02-08 13:26:47.900978: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:0 with 22994 MB memory) -> physical GPU (device: 0, name: Quadro P6000, pci bus id: 0000:82:00.0, compute capability: 6.1)
+2019-02-08 13:26:47.901484: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:1 with 10389 MB memory) -> physical GPU (device: 1, name: GeForce GTX 1080 Ti, pci bus id: 0000:01:00.0, compute capability: 6.1)
+2019-02-08 13:26:47.901844: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1115] Created TensorFlow device (/job:localhost/replica:0/task:0/device:GPU:2 with 10398 MB memory) -> physical GPU (device: 2, name: GeForce GTX 1080 Ti, pci bus id: 0000:02:00.0, compute capability: 6.1)
+env_type: atari
+Training deepq on atari:PongNoFrameskip-v4 with arguments 
+{'network': 'conv_only', 'lr': 0.0001, 'buffer_size': 10000, 'exploration_fraction': 0.1, 'exploration_final_eps': 0.01, 'train_freq': 4, 'learning_starts': 10000, 'target_network_update_freq': 1000, 'gamma': 0.99, 'prioritized_replay': True, 'prioritized_replay_alpha': 0.6, 'checkpoint_freq': 10000, 'checkpoint_path': None, 'dueling': True, 'load_path': '~/experiments/saved_models/pong-2M_deepq'}
+Loaded model from ~/experiments/saved_models/pong-2M_deepq
+Running trained model
