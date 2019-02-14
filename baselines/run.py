@@ -273,9 +273,10 @@ def main():
                 # img3.show()
             if state is None:
                 _, _,state, _ = model.step(adv_obs, S=state, M=dones)
+            obs, _, done, _ = env.step(adv_action)
         else:
             action, _, state, _ = model.step(obs,S=state, M=dones)
-        obs, _, done, _ = env.step(adv_action)
+            obs, _, done, _ = env.step(action)
         env.render()
         done = done.any() if isinstance(done, np.ndarray) else done
 
