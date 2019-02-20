@@ -191,7 +191,7 @@ def parse_cmdline_kwargs(args):
 
 def main():
     # configure logger, disable logging in child MPI processes (with rank > 0)
-    arg_parser = common_arg_parser()
+    arg_parser = ()
     args, unknown_args = arg_parser.parse_known_args()
     extra_args = parse_cmdline_kwargs(unknown_args)
 
@@ -209,6 +209,16 @@ def main():
         save_path = osp.expanduser(args.save_path)
         model.save(save_path)
 
+    if args.adv:
+        g = tf.Graph()
+        with g.as_default():
+            with tf.Session() as sess:
+                q_func = build_q_func(network='conv_only')
+                craft_adv_obs = build_adv(
+                    make_obs_tf=lambda name: ObservationInput(env.observation_space, name=name),
+                    q_func=q_func, num_actions=env.action_space.n, epsilon= 0.03
+                )
+
     if args.play:
         logger.log("Running trained model")
         env = build_env(args)
@@ -222,57 +232,28 @@ def main():
         num_moves = 0
         num_transfer = 0
         step = 0
-    if args.adv:
-        g = tf.Graph()
-        with g.as_default():
-            with tf.Session() as sess:
-                q_func = build_q_func(network='conv_only')
-                craft_adv_obs = build_adv(
-                    make_obs_tf=lambda name: ObservationInput(env.observation_space, name=name),
-                    q_func=q_func, num_actions=env.action_space.n, epsilon= 0.01
-                )
+
     while True:
         step = step + 1
         num_moves = num_moves + 1
         if args.adv:
             with g.as_default():
                 with tf.Session() as sess:
-                    sess.run(tf.global_variables_initializer())
+                    sess.run(tf.global_variables_initializer()) # initialize every time?
                     adv_obs = craft_adv_obs(np.array(obs)[None])[0] * 255.0
-                    # adv_obs = np.rint(adv_obs)
+                    adv_obs = np.rint(adv_obs)
                     adv_obs = adv_obs.astype(np.uint8)
-            # print(np.array_equal(np.asarray(adv_obs[:,:,0]),np.asarray(obs[:,:,0])))
-            difference = (adv_obs[:,:,0] - obs[:,:,0])*255.0
-            # TODO: Round to the nearest integer or directly round down
-            # assert np.array_equal(difference, np.zeros((84,84), dtype=np.float32)) #no difference in terms of data
-            assert np.asarray(obs[:,:,0]).dtype == np.asarray(adv_obs[:,:,0]).dtype
-            # print('type of obs: {}, type of adv_obs: {}'.format(np.asarray(obs[:,:,0]).dtype, np.asarray(adv_obs[:,:,0]).dtype))
-            # print('minimum of difference: {}, maximum of difference: {}'.format(np.min(difference), np.max(difference)))
-            # img1 = Image.fromarray(np.asarray(obs[:,:,0]), mode='L')
-            # img2 = Image.fromarray(np.asarray(adv_obs[:,:,0]), mode='L')
-            #     # img3 = Image.fromarray(obs[:,:,0] - adv_obs[:,:,0], mode='L')
-            # img1.show()
-            # img2.show()
-            # img2.save('/Users/harry/Downloads/image/eps=0_01/'+ str(step)+ '.png')
-
-            adv_action, _, _ , _ = model.step(adv_obs,S=state, M=dones)
-            action, _, _, _ = model.step(obs,S=state, M=dones)
-            # print('minimum of obs: {}, maximum of obs: {}'.format(np.min(obs[:,:,0]), np.max(obs[:,:,0])))
-            # print('minimum of adv_obs: {}, maximum of adv_obs: {}'.format(np.min(adv_obs[:,:,0]), np.max(adv_obs[:,:,0])))
+                    # assert np.array_equal(adv_obs, obs)
+            if step <= 10:
+                img2 = Image.fromarray(np.asarray(adv_obs[:,:,0]), mode='L')
+                img2.show()
+            prev_state = np.copy(state)
+            action, _, _, _ = model.step(obs,S=prev_state, M=dones)
+            adv_action, _, state, _ = model.step(adv_obs,S=prev_state, M=dones)
             if (adv_action != action):
                 print('Action before: {}, Action after: {}'.format(
                       action_meanings[action[0]], action_meanings[adv_action[0]]))
                 num_transfer = num_transfer + 1
-                # if np.max(perturbation == 100):
-                # # print('The maximum of perturbation is : {}'.format(np.max(perturbation)))
-            # img1 = Image.fromarray(obs[:,:,0], mode='L')
-            # img2 = Image.fromarray(adv_obs[:,:,0], mode='L')
-            #     # img3 = Image.fromarray(obs[:,:,0] - adv_obs[:,:,0], mode='L')
-            # img1.show()
-            # img2.show()
-                # img3.show()
-            if state is None:
-                _, _,state, _ = model.step(adv_obs, S=state, M=dones)
             obs, _, done, _ = env.step(adv_action)
         else:
             action, _, state, _ = model.step(obs,S=state, M=dones)
