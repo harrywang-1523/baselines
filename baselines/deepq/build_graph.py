@@ -95,7 +95,7 @@ The functions in this file can are used to create the following functions:
 """
 import tensorflow as tf
 import baselines.common.tf_util as U
-from cleverhans.attacks import FastGradientMethod, BasicIterativeMethod, CarliniWagnerL2
+from cleverhans.attacks import FastGradientMethod, BasicIterativeMethod, CarliniWagnerL2, DeepFool
 from cleverhans.model import CallableModelWrapper
 import numpy as np
 
@@ -144,7 +144,7 @@ def default_param_noise_filter(var):
     # to re-consider which layers to perturb and which to keep untouched.
     return False
 
-def build_adv(make_obs_tf, q_func, num_actions, epsilon):
+def build_adv(make_obs_tf, q_func, num_actions, epsilon, attack):
     with tf.variable_scope('deepq', reuse=tf.AUTO_REUSE):
         obs_tf_in = make_obs_tf("observation")
         stochastic_ph_adv = tf.placeholder(tf.bool, (), name="stochastic_adv")
@@ -157,10 +157,16 @@ def build_adv(make_obs_tf, q_func, num_actions, epsilon):
 
         def wrapper(x):
             return q_func(x, num_actions, scope="q_func", concat_softmax=False)
-        adversary = FastGradientMethod(CallableModelWrapper( #Logits/probs
-            wrapper, 'logits'), sess=U.get_session())
-        adv_observations = adversary.generate(obs_tf_in.get()/255.0, eps=epsilon,
-                        clip_min = 0.0, clip_max = 1.0, ord=np.inf)
+        if attack == 'fgsm':
+            adversary = FastGradientMethod(CallableModelWrapper( #Logits/probs
+                wrapper, 'logits'), sess=U.get_session())
+            adv_observations = adversary.generate(obs_tf_in.get(), eps=epsilon,
+                            clip_min = 0.0, clip_max = 255.0, ord=np.inf)
+        elif attack == 'deepfool':
+            adversary = DeepFool(CallableModelWrapper(
+                wrapper, 'logits'), sess=U.get_session())
+            adv_observations = adversary.generate(obs_tf_in.get(),
+                            clip_min = 0.0, clip_max = 255.0)
 
         craft_adv_obs = U.function(inputs=[obs_tf_in, stochastic_ph_adv, update_eps_ph_adv],
                                    outputs=adv_observations,

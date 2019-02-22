@@ -191,7 +191,7 @@ def parse_cmdline_kwargs(args):
 
 def main():
     # configure logger, disable logging in child MPI processes (with rank > 0)
-    arg_parser = ()
+    arg_parser = common_arg_parser()
     args, unknown_args = arg_parser.parse_known_args()
     extra_args = parse_cmdline_kwargs(unknown_args)
 
@@ -216,7 +216,8 @@ def main():
                 q_func = build_q_func(network='conv_only')
                 craft_adv_obs = build_adv(
                     make_obs_tf=lambda name: ObservationInput(env.observation_space, name=name),
-                    q_func=q_func, num_actions=env.action_space.n, epsilon= 0.03
+                    q_func=q_func, num_actions=env.action_space.n, epsilon= 0.005 * 255,
+                    attack=args.adv
                 )
 
     if args.play:
@@ -239,11 +240,10 @@ def main():
         if args.adv:
             with g.as_default():
                 with tf.Session() as sess:
-                    sess.run(tf.global_variables_initializer()) # initialize every time?
-                    adv_obs = craft_adv_obs(np.array(obs)[None])[0] * 255.0
+                    sess.run(tf.global_variables_initializer())
+                    adv_obs = craft_adv_obs(np.array(obs)[None])[0]
                     adv_obs = np.rint(adv_obs)
                     adv_obs = adv_obs.astype(np.uint8)
-                    # assert np.array_equal(adv_obs, obs)
             if step <= 10:
                 img2 = Image.fromarray(np.asarray(adv_obs[:,:,0]), mode='L')
                 img2.show()
@@ -257,6 +257,11 @@ def main():
             obs, _, done, _ = env.step(adv_action)
         else:
             action, _, state, _ = model.step(obs,S=state, M=dones)
+
+            # TODO: Get all the rewards and calculate their differences
+            # reward_list = [env.step(i)[1] for i in range(env.action_space.n) ]
+            # max_diff = max(reward_list) - min(reward_list)
+            # print(max_diff)
             obs, _, done, _ = env.step(action)
         env.render()
         done = done.any() if isinstance(done, np.ndarray) else done
