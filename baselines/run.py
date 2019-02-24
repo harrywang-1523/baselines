@@ -2,6 +2,7 @@ import sys
 import multiprocessing
 import os.path as osp
 import gym
+import copy
 from collections import defaultdict
 import tensorflow as tf
 import numpy as np
@@ -235,7 +236,7 @@ def main():
         step = 0
 
     while True:
-        step = step + 1
+        step = step + 1 # Overall steps. Does not reset to 0 when an episode ends
         num_moves = num_moves + 1
         if args.adv:
             with g.as_default():
@@ -258,8 +259,11 @@ def main():
         else:
             action, _, state, _ = model.step(obs,S=state, M=dones)
 
-            # TODO: Get all the rewards and calculate their differences
-            # reward_list = [env.step(i)[1] for i in range(env.action_space.n) ]
+            # env_copy = env.unwrapped.clone_full_state()
+            # reward_list = []
+            # for i in range(env.action_space.n):
+            #     reward_list.append(env.step(i)[1])
+            #     env.unwrapped.restore_full_state(env_copy)
             # max_diff = max(reward_list) - min(reward_list)
             # print(max_diff)
             obs, _, done, _ = env.step(action)
@@ -269,7 +273,8 @@ def main():
         if done:
             obs = env.reset()
             print(f'Episode {num_episodes}')
-            print('Percentage of successful attacks: {}'.format(100 * float(num_transfer) / num_moves))
+            if args.adv:
+                print('Percentage of successful attacks: {}'.format(100 * float(num_transfer) / num_moves))
             num_moves = 0
             num_transfer = 0
             num_episodes = num_episodes + 1

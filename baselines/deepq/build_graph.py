@@ -163,11 +163,9 @@ def build_adv(make_obs_tf, q_func, num_actions, epsilon, attack):
             adv_observations = adversary.generate(obs_tf_in.get(), eps=epsilon,
                             clip_min = 0.0, clip_max = 255.0, ord=np.inf)
         elif attack == 'deepfool':
-            adversary = DeepFool(CallableModelWrapper(
-                wrapper, 'logits'), sess=U.get_session())
-            adv_observations = adversary.generate(obs_tf_in.get(),
-                            clip_min = 0.0, clip_max = 255.0)
-
+            adversary = DeepFool(CallableModelWrapper(wrapper, 'logits'), sess=U.get_session())
+            adv_observations = adversary.generate(obs_tf_in.get(),clip_min = 0.0,
+                                      clip_max = 255.0, nb_candidate=num_actions)
         craft_adv_obs = U.function(inputs=[obs_tf_in, stochastic_ph_adv, update_eps_ph_adv],
                                    outputs=adv_observations,
                                    givens={update_eps_ph_adv: -1.0,
