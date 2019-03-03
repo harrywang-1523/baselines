@@ -39,7 +39,7 @@ except ImportError:
 from cleverhans.attacks import FastGradientMethod
 import matplotlib.pyplot as plt
 from PIL import Image
-
+import csv
 
 _game_envs = defaultdict(set)
 for env in gym.envs.registry.all():
@@ -83,14 +83,14 @@ def train(args, extra_args):
 
     print('Training {} on {}:{} with arguments \n{}'.format(args.alg, env_type, env_id, alg_kwargs))
 
-    model = learn(
+    model, debug = learn(
         env=env,
         seed=seed,
         total_timesteps=total_timesteps,
         **alg_kwargs
     )
 
-    return model, env # model is an ActWrapper
+    return model, env, debug # model is an ActWrapper
 
 
 def build_env(args):
@@ -203,7 +203,7 @@ def main():
         logger.configure(format_strs=[])
         rank = MPI.COMM_WORLD.Get_rank()
 
-    model, env = train(args, extra_args)
+    model, env, debug = train(args, extra_args)
     env.close()
 
     if args.save_path is not None and rank == 0:
@@ -234,6 +234,7 @@ def main():
         num_moves = 0
         num_transfer = 0
         step = 0
+        q_value_dict = {}
 
     while True:
         step = step + 1 # Overall steps. Does not reset to 0 when an episode ends
@@ -242,12 +243,12 @@ def main():
             with g.as_default():
                 with tf.Session() as sess:
                     sess.run(tf.global_variables_initializer())
-                    adv_obs = craft_adv_obs(np.array(obs)[None])[0]
+                    adv_obs = craft_adv_obs([obs])
                     adv_obs = np.rint(adv_obs)
                     adv_obs = adv_obs.astype(np.uint8)
-            if step <= 10:
-                img2 = Image.fromarray(np.asarray(adv_obs[:,:,0]), mode='L')
-                img2.show()
+            # if step <= 10: # Visualize adversarial observation 
+            #     img2 = Image.fromarray(np.asarray(adv_obs[:,:,0]), mode='L')
+            #     img2.show()
             prev_state = np.copy(state)
             action, _, _, _ = model.step(obs,S=prev_state, M=dones)
             adv_action, _, state, _ = model.step(adv_obs,S=prev_state, M=dones)
@@ -257,6 +258,17 @@ def main():
                 num_transfer = num_transfer + 1
             obs, _, done, _ = env.step(adv_action)
         else:
+            # Save the q_value in a csv file for analysis
+            # q_values = debug['q_values']([obs])
+            # diff = np.max(q_values) - np.min(q_values)
+            # q_value_dict[step] = diff
+            # with open('Breakout.csv', 'w') as f:
+            #     for key in q_value_dict:
+            #         f.write("%s,%s\n"%(key, q_value_dict[key]))
+            # if (diff >= 1.2):
+            #     print(diff)
+            #     img = Image.fromarray(obs[:,:,0], mode='L')
+            #     img.show()
             action, _, state, _ = model.step(obs,S=state, M=dones)
 
             # env_copy = env.unwrapped.clone_full_state()

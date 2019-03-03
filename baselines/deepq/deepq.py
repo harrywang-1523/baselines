@@ -242,6 +242,8 @@ def learn(env,
     obs = env.reset()
     reset = True
 
+    # print(debug['q_values']([obs])) print the value of the q_func
+    # [[-0.10014871 -0.04402447  0.06053159 -0.08053541 -0.08508403 -0.02846305]]
     with tempfile.TemporaryDirectory() as td:
         td = checkpoint_path or td
 
@@ -330,4 +332,4 @@ def learn(env,
                 logger.log("Restored model with mean reward: {}".format(saved_mean_reward))
             load_variables(model_file)
 
-    return act
+    return act, debug
