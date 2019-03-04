@@ -162,6 +162,12 @@ def build_adv(make_obs_tf, q_func, num_actions, epsilon, attack):
                 wrapper, 'logits'), sess=U.get_session())
             adv_observations = adversary.generate(obs_tf_in.get(), eps=epsilon,
                             clip_min = 0.0, clip_max = 255.0, ord=np.inf)
+        elif attack == 'bim':
+            adversary = BasicIterativeMethod(CallableModelWrapper( #Logits/probs
+                wrapper, 'logits'), sess=U.get_session())
+            adv_observations = adversary.generate(obs_tf_in.get(), eps=epsilon,
+                    eps_iter = epsilon,clip_min = 0.0, clip_max = 255.0, ord=np.inf)
+
         elif attack == 'deepfool':
             adversary = DeepFool(CallableModelWrapper(wrapper, 'logits'), sess=U.get_session())
             adv_observations = adversary.generate(obs_tf_in.get(),clip_min = 0.0,
@@ -171,6 +177,8 @@ def build_adv(make_obs_tf, q_func, num_actions, epsilon, attack):
                                    givens={update_eps_ph_adv: -1.0,
                                            stochastic_ph_adv: True},
                                    updates=[update_eps_expr_adv])
+
+
         return craft_adv_obs
 
 

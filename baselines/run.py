@@ -217,7 +217,7 @@ def main():
                 q_func = build_q_func(network='conv_only')
                 craft_adv_obs = build_adv(
                     make_obs_tf=lambda name: ObservationInput(env.observation_space, name=name),
-                    q_func=q_func, num_actions=env.action_space.n, epsilon= 0.005 * 255,
+                    q_func=q_func, num_actions=env.action_space.n, epsilon= 0.04 * 255,
                     attack=args.adv
                 )
 
@@ -243,12 +243,12 @@ def main():
             with g.as_default():
                 with tf.Session() as sess:
                     sess.run(tf.global_variables_initializer())
-                    adv_obs = craft_adv_obs([obs])
+                    adv_obs = craft_adv_obs([obs])[0] # (84,84,4)
                     adv_obs = np.rint(adv_obs)
                     adv_obs = adv_obs.astype(np.uint8)
-            # if step <= 10: # Visualize adversarial observation 
-            #     img2 = Image.fromarray(np.asarray(adv_obs[:,:,0]), mode='L')
-            #     img2.show()
+            if step >= 40 and step <= 50: # Visualize adversarial observation
+                img2 = Image.fromarray(np.asarray(adv_obs[:,:,0]), mode='L')
+                img2.show()
             prev_state = np.copy(state)
             action, _, _, _ = model.step(obs,S=prev_state, M=dones)
             adv_action, _, state, _ = model.step(adv_obs,S=prev_state, M=dones)
