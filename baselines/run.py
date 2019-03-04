@@ -217,7 +217,7 @@ def main():
                 q_func = build_q_func(network='conv_only')
                 craft_adv_obs = build_adv(
                     make_obs_tf=lambda name: ObservationInput(env.observation_space, name=name),
-                    q_func=q_func, num_actions=env.action_space.n, epsilon= 0.04 * 255,
+                    q_func=q_func, num_actions=env.action_space.n, epsilon= 0.5 * 255,
                     attack=args.adv
                 )
 
@@ -232,66 +232,77 @@ def main():
 
         num_episodes = 0
         num_moves = 0
-        num_transfer = 0
+        num_success_attack = 0
+        num_attack = 0
         step = 0
         q_value_dict = {}
 
-    while True:
-        step = step + 1 # Overall steps. Does not reset to 0 when an episode ends
-        num_moves = num_moves + 1
-        if args.adv:
-            with g.as_default():
-                with tf.Session() as sess:
-                    sess.run(tf.global_variables_initializer())
-                    adv_obs = craft_adv_obs([obs])[0] # (84,84,4)
-                    adv_obs = np.rint(adv_obs)
-                    adv_obs = adv_obs.astype(np.uint8)
-            if step >= 40 and step <= 50: # Visualize adversarial observation
-                img2 = Image.fromarray(np.asarray(adv_obs[:,:,0]), mode='L')
-                img2.show()
-            prev_state = np.copy(state)
-            action, _, _, _ = model.step(obs,S=prev_state, M=dones)
-            adv_action, _, state, _ = model.step(adv_obs,S=prev_state, M=dones)
-            if (adv_action != action):
-                print('Action before: {}, Action after: {}'.format(
-                      action_meanings[action[0]], action_meanings[adv_action[0]]))
-                num_transfer = num_transfer + 1
-            obs, _, done, _ = env.step(adv_action)
-        else:
-            # Save the q_value in a csv file for analysis
-            # q_values = debug['q_values']([obs])
-            # diff = np.max(q_values) - np.min(q_values)
-            # q_value_dict[step] = diff
-            # with open('Breakout.csv', 'w') as f:
-            #     for key in q_value_dict:
-            #         f.write("%s,%s\n"%(key, q_value_dict[key]))
-            # if (diff >= 1.2):
-            #     print(diff)
-            #     img = Image.fromarray(obs[:,:,0], mode='L')
-            #     img.show()
-            action, _, state, _ = model.step(obs,S=state, M=dones)
+        print('-------------------------Episode 0 -------------------------')
+        while True:
+            step = step + 1 # Overall steps. Does not reset to 0 when an episode ends
+            num_moves = num_moves + 1
+            q_values = debug['q_values']([obs])
+            diff = np.max(q_values) - np.min(q_values)
 
-            # env_copy = env.unwrapped.clone_full_state()
-            # reward_list = []
-            # for i in range(env.action_space.n):
-            #     reward_list.append(env.step(i)[1])
-            #     env.unwrapped.restore_full_state(env_copy)
-            # max_diff = max(reward_list) - min(reward_list)
-            # print(max_diff)
-            obs, _, done, _ = env.step(action)
-        env.render()
-        done = done.any() if isinstance(done, np.ndarray) else done
-
-        if done:
-            obs = env.reset()
-            print(f'Episode {num_episodes}')
             if args.adv:
-                print('Percentage of successful attacks: {}'.format(100 * float(num_transfer) / num_moves))
-            num_moves = 0
-            num_transfer = 0
-            num_episodes = num_episodes + 1
+                if diff >= 1.0:
+                    num_attack = num_attack + 1
+                    with g.as_default():
+                        with tf.Session() as sess:
+                            sess.run(tf.global_variables_initializer())
+                            adv_obs = craft_adv_obs([obs])[0] # (84,84,4)
+                            adv_obs = np.rint(adv_obs)
+                            adv_obs = adv_obs.astype(np.uint8)
+                # if step >= 40 and step <= 50: # Visualize adversarial observation
+                #     img2 = Image.fromarray(np.asarray(adv_obs[:,:,0]), mode='L')
+                #     img2.show()
+                    prev_state = np.copy(state)
+                    action, _, _, _ = model.step(obs,S=prev_state, M=dones)
+                    adv_action, _, state, _ = model.step(adv_obs,S=prev_state, M=dones)
+                    if (adv_action != action):
+                        print('Action before: {}, Action after: {}'.format(
+                              action_meanings[action[0]], action_meanings[adv_action[0]]))
+                        img = Image.fromarray(adv_obs[:,:,0], mode='L')
+                        img.show()
+                        num_success_attack = num_success_attack + 1
+                    obs, _, done, _ = env.step(adv_action)
+                else:
+                    action, _, state, _ = model.step(obs,S=state, M=dones)
+                    obs, _, done, _ = env.step(action)
+            else:
+                # Save the q_value in a csv file for analysis
+                # q_value_dict[step] = diff
+                # with open('Breakout.csv', 'w') as f:
+                #     for key in q_value_dict:
+                #         f.write("%s,%s\n"%(key, q_value_dict[key]))
+                # if (diff >= 1.2):
+                #     print(diff)
+                #     img = Image.fromarray(obs[:,:,0], mode='L')
+                #     img.show()
+                action, _, state, _ = model.step(obs,S=state, M=dones)
 
-    env.close()
+                # env_copy = env.unwrapped.clone_full_state()
+                # reward_list = []
+                # for i in range(env.action_space.n):
+                #     reward_list.append(env.step(i)[1])
+                #     env.unwrapped.restore_full_state(env_copy)
+                # max_diff = max(reward_list) - min(reward_list)
+                # print(max_diff)
+                obs, _, done, _ = env.step(action)
+            env.render()
+            done = done.any() if isinstance(done, np.ndarray) else done
+
+            if done:
+                obs = env.reset()
+                if args.adv:
+                    print('Percentage of attack: {}'.format(100 * float(num_attack) / num_moves))
+                    print('Percentage of successful attacks: {}'.format(100 * float(num_success_attack) / num_attack))
+                num_moves = 0
+                num_transfer = 0
+                num_episodes = num_episodes + 1
+                print(f'-------------------------Episode {num_episodes}-------------------------')
+
+        env.close()
 
 if __name__ == '__main__':
     main()
