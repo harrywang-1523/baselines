@@ -95,7 +95,7 @@ The functions in this file can are used to create the following functions:
 """
 import tensorflow as tf
 import baselines.common.tf_util as U
-from cleverhans.attacks import FastGradientMethod, BasicIterativeMethod, CarliniWagnerL2, DeepFool
+from cleverhans.attacks import FastGradientMethod, BasicIterativeMethod, CarliniWagnerL2, DeepFool, MomentumIterativeMethod
 from cleverhans.model import CallableModelWrapper
 import numpy as np
 
@@ -166,12 +166,16 @@ def build_adv(make_obs_tf, q_func, num_actions, epsilon, attack):
             adversary = BasicIterativeMethod(CallableModelWrapper( #Logits/probs
                 wrapper, 'logits'), sess=U.get_session())
             adv_observations = adversary.generate(obs_tf_in.get(), eps=epsilon,
-                    eps_iter = epsilon,clip_min = 0.0, clip_max = 255.0, ord=np.inf)
+                    eps_iter = epsilon / 10, nb_iter=10 ,clip_min = 0.0, clip_max = 255.0, ord=np.inf)
 
         elif attack == 'deepfool':
             adversary = DeepFool(CallableModelWrapper(wrapper, 'logits'), sess=U.get_session())
             adv_observations = adversary.generate(obs_tf_in.get(),clip_min = 0.0,
                                       clip_max = 255.0, nb_candidate=num_actions)
+        elif attack == 'momentum':
+            adversary = MomentumIterativeMethod(CallableModelWrapper(wrapper, 'logits'), sess=U.get_session())
+            adv_observations = adversary.generate(obs_tf_in.get(), eps=epsilon,
+                    eps_iter = epsilon / 10, nb_iter=10, clip_min=0.0, clip_max=255.0)
         craft_adv_obs = U.function(inputs=[obs_tf_in, stochastic_ph_adv, update_eps_ph_adv],
                                    outputs=adv_observations,
                                    givens={update_eps_ph_adv: -1.0,

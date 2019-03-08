@@ -217,7 +217,8 @@ def main():
                 q_func = build_q_func(network='conv_only')
                 craft_adv_obs = build_adv(
                     make_obs_tf=lambda name: ObservationInput(env.observation_space, name=name),
-                    q_func=q_func, num_actions=env.action_space.n, epsilon= 0.5 * 255,
+                    q_func=q_func, num_actions=env.action_space.n, epsilon= 6,
+                    #0.1 * 255,
                     attack=args.adv
                 )
 
@@ -245,7 +246,7 @@ def main():
             diff = np.max(q_values) - np.min(q_values)
 
             if args.adv:
-                if diff >= 1.0:
+                if diff >= 0.0:
                     num_attack = num_attack + 1
                     with g.as_default():
                         with tf.Session() as sess:
@@ -253,17 +254,17 @@ def main():
                             adv_obs = craft_adv_obs([obs])[0] # (84,84,4)
                             adv_obs = np.rint(adv_obs)
                             adv_obs = adv_obs.astype(np.uint8)
-                # if step >= 40 and step <= 50: # Visualize adversarial observation
-                #     img2 = Image.fromarray(np.asarray(adv_obs[:,:,0]), mode='L')
-                #     img2.show()
+                    if step >= 40 and step <= 50: # Visualize adversarial observation
+                        img2 = Image.fromarray(np.asarray(adv_obs[:,:,0]), mode='L')
+                        img2.show()
                     prev_state = np.copy(state)
                     action, _, _, _ = model.step(obs,S=prev_state, M=dones)
                     adv_action, _, state, _ = model.step(adv_obs,S=prev_state, M=dones)
                     if (adv_action != action):
                         print('Action before: {}, Action after: {}'.format(
                               action_meanings[action[0]], action_meanings[adv_action[0]]))
-                        img = Image.fromarray(adv_obs[:,:,0], mode='L')
-                        img.show()
+                        # img = Image.fromarray(adv_obs[:,:,0], mode='L')
+                        # img.show()
                         num_success_attack = num_success_attack + 1
                     obs, _, done, _ = env.step(adv_action)
                 else:
