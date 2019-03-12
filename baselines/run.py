@@ -217,7 +217,7 @@ def main():
                 q_func = build_q_func(network='conv_only')
                 craft_adv_obs = build_adv(
                     make_obs_tf=lambda name: ObservationInput(env.observation_space, name=name),
-                    q_func=q_func, num_actions=env.action_space.n, epsilon= 6,
+                    q_func=q_func, num_actions=env.action_space.n, epsilon= 19.99,
                     #0.1 * 255,
                     attack=args.adv
                 )

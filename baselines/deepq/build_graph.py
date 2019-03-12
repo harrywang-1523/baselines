@@ -95,7 +95,7 @@ The functions in this file can are used to create the following functions:
 """
 import tensorflow as tf
 import baselines.common.tf_util as U
-from cleverhans.attacks import FastGradientMethod, BasicIterativeMethod, CarliniWagnerL2, DeepFool, MomentumIterativeMethod
+from cleverhans.attacks import FastGradientMethod, BasicIterativeMethod, CarliniWagnerL2, DeepFool, MomentumIterativeMethod, SaliencyMapMethod
 from cleverhans.model import CallableModelWrapper
 import numpy as np
 
@@ -176,6 +176,9 @@ def build_adv(make_obs_tf, q_func, num_actions, epsilon, attack):
             adversary = MomentumIterativeMethod(CallableModelWrapper(wrapper, 'logits'), sess=U.get_session())
             adv_observations = adversary.generate(obs_tf_in.get(), eps=epsilon,
                     eps_iter = epsilon / 10, nb_iter=10, clip_min=0.0, clip_max=255.0)
+        elif attack == 'jsma':
+            adversary = SaliencyMapMethod(CallableModelWrapper(wrapper, 'logits'), sess=U.get_session())
+            adv_observations = adversary.generate(obs_tf_in.get(),clip_min=0.0, clip_max=255.0)
         craft_adv_obs = U.function(inputs=[obs_tf_in, stochastic_ph_adv, update_eps_ph_adv],
                                    outputs=adv_observations,
                                    givens={update_eps_ph_adv: -1.0,
