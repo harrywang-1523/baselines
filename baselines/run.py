@@ -218,7 +218,6 @@ def main():
                 craft_adv_obs = build_adv(
                     make_obs_tf=lambda name: ObservationInput(env.observation_space, name=name),
                     q_func=q_func, num_actions=env.action_space.n, epsilon= 19.99,
-                    #0.1 * 255,
                     attack=args.adv
                 )
 
@@ -245,8 +244,14 @@ def main():
             q_values = debug['q_values']([obs])
             diff = np.max(q_values) - np.min(q_values)
 
+            # if num_episodes == 0: # Collect one episode of q_value list
+            #     q_value_list = np.squeeze(q_values)
+            #     with open('/Users/harry/Documents/q_value_pong_adv_19.99_0.5.csv', 'a') as q_value_file:
+            #         q_value_writter = csv.writer(q_value_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            #         q_value_writter.writerow(q_value_list)
+
             if args.adv:
-                if diff >= 0.0:
+                if diff >= 0.5:
                     num_attack = num_attack + 1
                     with g.as_default():
                         with tf.Session() as sess:
@@ -254,32 +259,37 @@ def main():
                             adv_obs = craft_adv_obs([obs])[0] # (84,84,4)
                             adv_obs = np.rint(adv_obs)
                             adv_obs = adv_obs.astype(np.uint8)
-                    if step >= 40 and step <= 50: # Visualize adversarial observation
-                        img2 = Image.fromarray(np.asarray(adv_obs[:,:,0]), mode='L')
-                        img2.show()
+                    # if step >= 40 and step <= 50: # Visualize adversarial observation
+                    #     img2 = Image.fromarray(np.asarray(adv_obs[:,:,0]), mode='L')
+                    #     img2.show()
+                    # if num_episodes == 0:
+                    #     img = Image.fromarray(np.asarray(adv_obs[:,:,0]), mode='L')
+                    #     img.save('/Users/harry/Documents/adv_images/' + str(num_moves) + '.png')
                     prev_state = np.copy(state)
                     action, _, _, _ = model.step(obs,S=prev_state, M=dones)
                     adv_action, _, state, _ = model.step(adv_obs,S=prev_state, M=dones)
                     if (adv_action != action):
                         print('Action before: {}, Action after: {}'.format(
                               action_meanings[action[0]], action_meanings[adv_action[0]]))
-                        # img = Image.fromarray(adv_obs[:,:,0], mode='L')
-                        # img.show()
                         num_success_attack = num_success_attack + 1
                     obs, _, done, _ = env.step(adv_action)
                 else:
                     action, _, state, _ = model.step(obs,S=state, M=dones)
                     obs, _, done, _ = env.step(action)
+                    # if num_episodes == 0:
+                    #     img = Image.fromarray(np.asarray(obs[:,:,0]), mode='L')
+                    #     img.save('/Users/harry/Documents/adv_images/' + str(num_moves) + '.png')
             else:
+                q_value_list = np.squeeze(q_values)
+                # if num_episodes == 0: # Collect one episode of q_value list
+                #     with open('/Users/harry/Documents/q_value_pong.csv', 'a') as q_value_file:
+                #         q_value_writter = csv.writer(q_value_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+                #         q_value_writter.writerow(q_value_list)
                 # Save the q_value in a csv file for analysis
                 # q_value_dict[step] = diff
                 # with open('Breakout.csv', 'w') as f:
                 #     for key in q_value_dict:
                 #         f.write("%s,%s\n"%(key, q_value_dict[key]))
-                # if (diff >= 1.2):
-                #     print(diff)
-                #     img = Image.fromarray(obs[:,:,0], mode='L')
-                #     img.show()
                 action, _, state, _ = model.step(obs,S=state, M=dones)
 
                 # env_copy = env.unwrapped.clone_full_state()

@@ -158,6 +158,11 @@ def build_adv(make_obs_tf, q_func, num_actions, epsilon, attack):
         def wrapper(x):
             return q_func(x, num_actions, scope="q_func", concat_softmax=False)
         if attack == 'fgsm':
+            # One-hot encoding, force agent to select NOOP
+            # target = np.zeros(num_actions, dtype=np.float32)
+            # target[0] = 1
+            # target = target[None]
+
             adversary = FastGradientMethod(CallableModelWrapper( #Logits/probs
                 wrapper, 'logits'), sess=U.get_session())
             adv_observations = adversary.generate(obs_tf_in.get(), eps=epsilon,
