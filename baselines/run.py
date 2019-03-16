@@ -217,7 +217,7 @@ def main():
                 q_func = build_q_func(network='conv_only')
                 craft_adv_obs = build_adv(
                     make_obs_tf=lambda name: ObservationInput(env.observation_space, name=name),
-                    q_func=q_func, num_actions=env.action_space.n, epsilon= 19.99,
+                    q_func=q_func, num_actions=env.action_space.n, epsilon=args.epsilon,
                     attack=args.adv
                 )
 
@@ -236,6 +236,7 @@ def main():
         num_attack = 0
         step = 0
         q_value_dict = {}
+        old_diff = 0
 
         print('-------------------------Episode 0 -------------------------')
         while True:
@@ -243,15 +244,18 @@ def main():
             num_moves = num_moves + 1
             q_values = debug['q_values']([obs])
             diff = np.max(q_values) - np.min(q_values)
+            sec_ord_diff = diff - old_diff
+            # div_diff = np.max(q_values) / np.min(q_values)
+            old_diff = diff
 
-            # if num_episodes == 0: # Collect one episode of q_value list
-            #     q_value_list = np.squeeze(q_values)
-            #     with open('/Users/harry/Documents/q_value_pong_adv_19.99_0.5.csv', 'a') as q_value_file:
-            #         q_value_writter = csv.writer(q_value_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-            #         q_value_writter.writerow(q_value_list)
+            if args.save_q_value:
+                q_value_list = np.squeeze(q_values)
+                with open('/Users/harry/Documents/q_value_pong_adv_ep' + str(num_episodes+1) + '.csv', 'a') as q_value_file:
+                    q_value_writter = csv.writer(q_value_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+                    q_value_writter.writerow(q_value_list)
 
             if args.adv:
-                if diff >= 0.5:
+                if sec_ord_diff >= 0.15:
                     num_attack = num_attack + 1
                     with g.as_default():
                         with tf.Session() as sess:
@@ -259,12 +263,12 @@ def main():
                             adv_obs = craft_adv_obs([obs])[0] # (84,84,4)
                             adv_obs = np.rint(adv_obs)
                             adv_obs = adv_obs.astype(np.uint8)
-                    # if step >= 40 and step <= 50: # Visualize adversarial observation
-                    #     img2 = Image.fromarray(np.asarray(adv_obs[:,:,0]), mode='L')
-                    #     img2.show()
-                    # if num_episodes == 0:
-                    #     img = Image.fromarray(np.asarray(adv_obs[:,:,0]), mode='L')
-                    #     img.save('/Users/harry/Documents/adv_images/' + str(num_moves) + '.png')
+                    if num_attack >= 1 and num_attack <= 5: # Visualize adversarial observation
+                        img2 = Image.fromarray(np.asarray(adv_obs[:,:,0]), mode='L')
+                        img2.show()
+                    if args.save_image:
+                        img = Image.fromarray(np.asarray(adv_obs[:,:,0]), mode='L')
+                        img.save('/Users/harry/Documents/adv_images_ep' + str(num_episodes+1) + '/' + str(num_moves) + '.png')
                     prev_state = np.copy(state)
                     action, _, _, _ = model.step(obs,S=prev_state, M=dones)
                     adv_action, _, state, _ = model.step(adv_obs,S=prev_state, M=dones)
@@ -276,20 +280,11 @@ def main():
                 else:
                     action, _, state, _ = model.step(obs,S=state, M=dones)
                     obs, _, done, _ = env.step(action)
-                    # if num_episodes == 0:
-                    #     img = Image.fromarray(np.asarray(obs[:,:,0]), mode='L')
-                    #     img.save('/Users/harry/Documents/adv_images/' + str(num_moves) + '.png')
+                    if args.save_image:
+                        img = Image.fromarray(np.asarray(obs[:,:,0]), mode='L')
+                        img.save('/Users/harry/Documents/adv_images_ep' + str(num_episodes+1) + '/' + str(num_moves) + '.png')
             else:
                 q_value_list = np.squeeze(q_values)
-                # if num_episodes == 0: # Collect one episode of q_value list
-                #     with open('/Users/harry/Documents/q_value_pong.csv', 'a') as q_value_file:
-                #         q_value_writter = csv.writer(q_value_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-                #         q_value_writter.writerow(q_value_list)
-                # Save the q_value in a csv file for analysis
-                # q_value_dict[step] = diff
-                # with open('Breakout.csv', 'w') as f:
-                #     for key in q_value_dict:
-                #         f.write("%s,%s\n"%(key, q_value_dict[key]))
                 action, _, state, _ = model.step(obs,S=state, M=dones)
 
                 # env_copy = env.unwrapped.clone_full_state()
@@ -308,9 +303,11 @@ def main():
                 if args.adv:
                     print('Percentage of attack: {}'.format(100 * float(num_attack) / num_moves))
                     print('Percentage of successful attacks: {}'.format(100 * float(num_success_attack) / num_attack))
+                    print('Number of moves in episode{}: {}'.format(num_episodes, num_moves))
                 num_moves = 0
                 num_transfer = 0
                 num_episodes = num_episodes + 1
+                num_attacks = 0
                 print(f'-------------------------Episode {num_episodes}-------------------------')
 
         env.close()

@@ -133,6 +133,9 @@ def common_arg_parser():
     parser.add_argument('--save_path', help='Path to save trained model to', default=None, type=str)
     parser.add_argument('--play', default=False, action='store_true')
     parser.add_argument('--adv', help='Attack Algorithm', type=str)
+    parser.add_argument('--epsilon', help='Attack magnitude', type=float, default=None)
+    parser.add_argument('--save_q_value', help='save q-value to a csv file', default=False, action='store_true')
+    parser.add_argument('--save_image', help='save observations', default=False, action='store_true')
     return parser
 
 def robotics_arg_parser():

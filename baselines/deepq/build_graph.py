@@ -163,13 +163,11 @@ def build_adv(make_obs_tf, q_func, num_actions, epsilon, attack):
             # target[0] = 1
             # target = target[None]
 
-            adversary = FastGradientMethod(CallableModelWrapper( #Logits/probs
-                wrapper, 'logits'), sess=U.get_session())
+            adversary = FastGradientMethod(CallableModelWrapper(wrapper, 'logits'), sess=U.get_session())
             adv_observations = adversary.generate(obs_tf_in.get(), eps=epsilon,
                             clip_min = 0.0, clip_max = 255.0, ord=np.inf)
         elif attack == 'bim':
-            adversary = BasicIterativeMethod(CallableModelWrapper( #Logits/probs
-                wrapper, 'logits'), sess=U.get_session())
+            adversary = BasicIterativeMethod(CallableModelWrapper(wrapper, 'logits'), sess=U.get_session())
             adv_observations = adversary.generate(obs_tf_in.get(), eps=epsilon,
                     eps_iter = epsilon / 10, nb_iter=10 ,clip_min = 0.0, clip_max = 255.0, ord=np.inf)
 
@@ -184,6 +182,7 @@ def build_adv(make_obs_tf, q_func, num_actions, epsilon, attack):
         elif attack == 'jsma':
             adversary = SaliencyMapMethod(CallableModelWrapper(wrapper, 'logits'), sess=U.get_session())
             adv_observations = adversary.generate(obs_tf_in.get(),clip_min=0.0, clip_max=255.0)
+
         craft_adv_obs = U.function(inputs=[obs_tf_in, stochastic_ph_adv, update_eps_ph_adv],
                                    outputs=adv_observations,
                                    givens={update_eps_ph_adv: -1.0,
