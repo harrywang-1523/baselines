@@ -136,6 +136,8 @@ def common_arg_parser():
     parser.add_argument('--epsilon', help='Attack magnitude', type=float, default=None)
     parser.add_argument('--save_q_value', help='save q-value to a csv file', default=False, action='store_true')
     parser.add_argument('--save_image', help='save observations', default=False, action='store_true')
+    parser.add_argument('--preview_image', help='Show five frames of adversarial image', default=False, action='store_true')
+    parser.add_argument('--diff', help='Threshold of difference to launch attack', type=float, default=0)
     return parser
 
 def robotics_arg_parser():

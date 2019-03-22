@@ -238,6 +238,7 @@ def main():
         q_value_dict = {}
         old_diff = 0
 
+        print("Threshold to launch attack: ", args.diff)
         print('-------------------------Episode 0 -------------------------')
         while True:
             step = step + 1 # Overall steps. Does not reset to 0 when an episode ends
@@ -245,17 +246,18 @@ def main():
             q_values = debug['q_values']([obs])
             diff = np.max(q_values) - np.min(q_values)
             sec_ord_diff = diff - old_diff
-            # div_diff = np.max(q_values) / np.min(q_values)
+            div_diff = np.max(q_values) / np.min(q_values)
             old_diff = diff
 
             if args.save_q_value:
                 q_value_list = np.squeeze(q_values)
-                with open('/Users/harry/Documents/q_value_pong_adv_ep' + str(num_episodes+1) + '.csv', 'a') as q_value_file:
+                with open('/Users/harry/Documents/q_value_pong_ep' + str(num_episodes+1) + '_diff' + str(args.diff) + '.csv', 'a') as q_value_file:
                     q_value_writter = csv.writer(q_value_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
                     q_value_writter.writerow(q_value_list)
 
             if args.adv:
-                if sec_ord_diff >= 0.15:
+                if diff >= args.diff:
+                # if diff >= 0.4 or sec_ord_diff >= 0.25:
                     num_attack = num_attack + 1
                     with g.as_default():
                         with tf.Session() as sess:
@@ -263,28 +265,34 @@ def main():
                             adv_obs = craft_adv_obs([obs])[0] # (84,84,4)
                             adv_obs = np.rint(adv_obs)
                             adv_obs = adv_obs.astype(np.uint8)
-                    if num_attack >= 1 and num_attack <= 5: # Visualize adversarial observation
-                        img2 = Image.fromarray(np.asarray(adv_obs[:,:,0]), mode='L')
-                        img2.show()
+                    if args.preview_image:
+                        if num_attack >= 2 and num_attack <= 10:
+                            img2 = Image.fromarray(np.asarray(adv_obs[:,:,0]), mode='L')
+                            img2.show()
                     if args.save_image:
-                        img = Image.fromarray(np.asarray(adv_obs[:,:,0]), mode='L')
-                        img.save('/Users/harry/Documents/adv_images_ep' + str(num_episodes+1) + '/' + str(num_moves) + '.png')
+                        if num_episodes == 0:
+                            if num_moves <= 420:
+                                img = Image.fromarray(np.asarray(adv_obs[:,:,0]), mode='L')
+                                img.save('/Users/harry/Documents/adv_19_99/adv_image_' + str(num_moves) + '.png')
                     prev_state = np.copy(state)
                     action, _, _, _ = model.step(obs,S=prev_state, M=dones)
                     adv_action, _, state, _ = model.step(adv_obs,S=prev_state, M=dones)
                     if (adv_action != action):
-                        print('Action before: {}, Action after: {}'.format(
-                              action_meanings[action[0]], action_meanings[adv_action[0]]))
+                        # print('Action before: {}, Action after: {}'.format(
+                        #       action_meanings[action[0]], action_meanings[adv_action[0]]))
                         num_success_attack = num_success_attack + 1
-                    obs, _, done, _ = env.step(adv_action)
+                    obs, _, done, info = env.step(adv_action)
                 else:
                     action, _, state, _ = model.step(obs,S=state, M=dones)
-                    obs, _, done, _ = env.step(action)
+                    obs, _, done, info = env.step(action)
                     if args.save_image:
                         img = Image.fromarray(np.asarray(obs[:,:,0]), mode='L')
                         img.save('/Users/harry/Documents/adv_images_ep' + str(num_episodes+1) + '/' + str(num_moves) + '.png')
             else:
-                q_value_list = np.squeeze(q_values)
+                if args.save_image:
+                    if num_episodes == 0:
+                        img = Image.fromarray(np.asarray(obs[:,:,0]), mode='L')
+                        img.save('/Users/harry/Documents/normal_obs' + str(num_moves) + '.png')
                 action, _, state, _ = model.step(obs,S=state, M=dones)
 
                 # env_copy = env.unwrapped.clone_full_state()
@@ -294,20 +302,24 @@ def main():
                 #     env.unwrapped.restore_full_state(env_copy)
                 # max_diff = max(reward_list) - min(reward_list)
                 # print(max_diff)
-                obs, _, done, _ = env.step(action)
-            env.render()
+                obs, _, done, info = env.step(action)
+            # env.render()
             done = done.any() if isinstance(done, np.ndarray) else done
 
             if done:
+                npc_score = info['episode']['r']
+
                 obs = env.reset()
+                print('Episode {} takes {} time steps'.format(num_episodes, num_moves))
+                print('NPC Score: {}'.format(npc_score))
                 if args.adv:
                     print('Percentage of attack: {}'.format(100 * float(num_attack) / num_moves))
                     print('Percentage of successful attacks: {}'.format(100 * float(num_success_attack) / num_attack))
-                    print('Number of moves in episode{}: {}'.format(num_episodes, num_moves))
                 num_moves = 0
                 num_transfer = 0
                 num_episodes = num_episodes + 1
-                num_attacks = 0
+                num_attack = 0
+                num_success_attack = 0
                 print(f'-------------------------Episode {num_episodes}-------------------------')
 
         env.close()
