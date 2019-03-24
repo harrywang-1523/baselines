@@ -140,6 +140,7 @@ def common_arg_parser():
     parser.add_argument('--diff', help='Threshold of difference to launch attack', type=float, default=0)
     parser.add_argument('--diff_type', help='Select which kind of diff to use', type=str, default='')
     parser.add_argument('--save_info', help='Save all relevant info of the game play', default=False, action='store_true')
+    parser.add_argument('--info_name', help='Name of the csv file where the info is stored', type=str, default='')
     return parser
 
 def robotics_arg_parser():

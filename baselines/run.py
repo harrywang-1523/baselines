@@ -222,7 +222,8 @@ def main():
                 )
 
     if args.save_info:
-        with open('/Users/harry/test.csv', mode='a') as csv_file:
+        name = args.info_name
+        with open('./'+name, mode='a') as csv_file:
             fieldnames = ['episode', 'diff_type', 'diff', 'epsilon', 'steps', 'attack rate', 'success rate', 'score']
             writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
             writer.writeheader()
