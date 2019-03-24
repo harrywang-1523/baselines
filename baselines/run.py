@@ -221,6 +221,12 @@ def main():
                     attack=args.adv
                 )
 
+    if args.save_info:
+        with open('/Users/harry/test.csv', mode='a') as csv_file:
+            fieldnames = ['episode', 'diff_type', 'diff', 'epsilon', 'steps', 'attack rate', 'success rate', 'score']
+            writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+            writer.writeheader()
+
     if args.play:
         logger.log("Running trained model")
         env = build_env(args)
@@ -238,26 +244,33 @@ def main():
         q_value_dict = {}
         old_diff = 0
 
-        print("Threshold to launch attack: ", args.diff)
+        diff_type = args.diff_type
+        print("Type of diff: {}. Threshold to launch attack: {}".format(diff_type, args.diff))
         print('-------------------------Episode 0 -------------------------')
         while True:
             step = step + 1 # Overall steps. Does not reset to 0 when an episode ends
             num_moves = num_moves + 1
             q_values = debug['q_values']([obs])
-            diff = np.max(q_values) - np.min(q_values)
-            sec_ord_diff = diff - old_diff
+            q_values = np.squeeze(q_values)
+
+            # e_x = np.exp(q_values - np.max(q_values))
+            # q_values = e_x / e_x.sum(axis=0)
+
+            minus_diff = np.max(q_values) - np.min(q_values)
             div_diff = np.max(q_values) / np.min(q_values)
-            old_diff = diff
+            sec_ord_diff = minus_diff - old_diff
+            old_diff = minus_diff
 
             if args.save_q_value:
-                q_value_list = np.squeeze(q_values)
                 with open('/Users/harry/Documents/q_value_pong_ep' + str(num_episodes+1) + '_diff' + str(args.diff) + '.csv', 'a') as q_value_file:
                     q_value_writter = csv.writer(q_value_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-                    q_value_writter.writerow(q_value_list)
+                    q_value_writter.writerow(q_values)
 
             if args.adv:
+                diff = minus_diff if args.diff_type == 'diff' else div_diff \
+                                  if args.diff_type == 'div_diff' else sec_ord_diff \
+                                  if args.diff_type == 'sec_ord_diff' else minus_diff
                 if diff >= args.diff:
-                # if diff >= 0.4 or sec_ord_diff >= 0.25:
                     num_attack = num_attack + 1
                     with g.as_default():
                         with tf.Session() as sess:
@@ -281,10 +294,10 @@ def main():
                         # print('Action before: {}, Action after: {}'.format(
                         #       action_meanings[action[0]], action_meanings[adv_action[0]]))
                         num_success_attack = num_success_attack + 1
-                    obs, _, done, info = env.step(adv_action)
+                    obs, rew, done, info = env.step(adv_action)
                 else:
                     action, _, state, _ = model.step(obs,S=state, M=dones)
-                    obs, _, done, info = env.step(action)
+                    obs, rew, done, info = env.step(action)
                     if args.save_image:
                         img = Image.fromarray(np.asarray(obs[:,:,0]), mode='L')
                         img.save('/Users/harry/Documents/adv_images_ep' + str(num_episodes+1) + '/' + str(num_moves) + '.png')
@@ -303,18 +316,27 @@ def main():
                 # max_diff = max(reward_list) - min(reward_list)
                 # print(max_diff)
                 obs, _, done, info = env.step(action)
-            # env.render()
+            env.render()
             done = done.any() if isinstance(done, np.ndarray) else done
 
             if done:
                 npc_score = info['episode']['r']
-
+                score = 21 if npc_score < 0 else 21 - npc_score
+                # with open('/Users/harry/Documents/reward.csv', 'a') as q_value_file:
+                #     q_value_writter = csv.writer(q_value_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+                #     q_value_writter.writerow([npc_score])
                 obs = env.reset()
                 print('Episode {} takes {} time steps'.format(num_episodes, num_moves))
                 print('NPC Score: {}'.format(npc_score))
                 if args.adv:
-                    print('Percentage of attack: {}'.format(100 * float(num_attack) / num_moves))
-                    print('Percentage of successful attacks: {}'.format(100 * float(num_success_attack) / num_attack))
+                    attack_rate = float(num_attack) / num_moves
+                    success_rate = float(num_success_attack) / num_attack
+                    print('Percentage of attack: {}'.format(100 * attack_rate))
+                    print('Percentage of successful attacks: {}'.format(100 * success_rate))
+                    info_dict = {'episode': num_episodes+1,'diff_type': args.diff_type, 'diff': args.diff, 'epsilon': args.epsilon,
+                             'steps': num_moves, 'attack rate': attack_rate, 'success rate': success_rate, 'score': score}
+                    writer.writerow(info_dict)
+
                 num_moves = 0
                 num_transfer = 0
                 num_episodes = num_episodes + 1

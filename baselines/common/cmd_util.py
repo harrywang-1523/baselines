@@ -138,6 +138,8 @@ def common_arg_parser():
     parser.add_argument('--save_image', help='save observations', default=False, action='store_true')
     parser.add_argument('--preview_image', help='Show five frames of adversarial image', default=False, action='store_true')
     parser.add_argument('--diff', help='Threshold of difference to launch attack', type=float, default=0)
+    parser.add_argument('--diff_type', help='Select which kind of diff to use', type=str, default='')
+    parser.add_argument('--save_info', help='Save all relevant info of the game play', default=False, action='store_true')
     return parser
 
 def robotics_arg_parser():
