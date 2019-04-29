@@ -132,10 +132,11 @@ def common_arg_parser():
     parser.add_argument('--reward_scale', help='Reward scale factor. Default: 1.0', default=1.0, type=float)
     parser.add_argument('--save_path', help='Path to save trained model to', default=None, type=str)
     parser.add_argument('--play', default=False, action='store_true')
-    parser.add_argument('--adv', help='Attack Algorithm', type=str)
+    # New Arguments
+    parser.add_argument('--adv_alg', help='Attack Algorithm', type=str)
     parser.add_argument('--epsilon', help='Attack magnitude', type=float, default=None)
     parser.add_argument('--save_q_value', help='save q-value to a csv file', default=False, action='store_true')
-    parser.add_argument('--save_image', help='save observations', default=False, action='store_true')
+    parser.add_argument('--save_image', help='save actual frames', default=False, action='store_true')
     parser.add_argument('--preview_image', help='Show five frames of adversarial image', default=False, action='store_true')
     parser.add_argument('--diff', help='Threshold of difference to launch attack', type=float, default=0)
     parser.add_argument('--diff_type', help='Select which kind of diff to use', type=str, default='')

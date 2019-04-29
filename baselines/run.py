@@ -203,14 +203,14 @@ def main():
         logger.configure(format_strs=[])
         rank = MPI.COMM_WORLD.Get_rank()
 
-    model, env, debug = train(args, extra_args)
+    model, env, debug = train(args, extra_args) # Get the trained model
     env.close()
 
     if args.save_path is not None and rank == 0:
         save_path = osp.expanduser(args.save_path)
         model.save(save_path)
 
-    if args.adv:
+    if args.adv_alg: # If attack is applied, build the function for crafting adversarial observations
         g = tf.Graph()
         with g.as_default():
             with tf.Session() as sess:
@@ -218,12 +218,12 @@ def main():
                 craft_adv_obs = build_adv(
                     make_obs_tf=lambda name: ObservationInput(env.observation_space, name=name),
                     q_func=q_func, num_actions=env.action_space.n, epsilon=args.epsilon,
-                    attack=args.adv
+                    attack=args.adv_alg
                 )
 
-    if args.save_info:
+    if args.save_info: # Save all the information in a csv filter
         name = args.info_name
-        with open('./'+name, mode='a') as csv_file:
+        with open('/Users/harry/Documents/info/'+name, mode='a') as csv_file:
             fieldnames = ['episode', 'diff_type', 'diff', 'epsilon', 'steps', 'attack rate', 'success rate', 'score']
             writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
             writer.writeheader()
@@ -254,44 +254,44 @@ def main():
             q_values = debug['q_values']([obs])
             q_values = np.squeeze(q_values)
 
-            # e_x = np.exp(q_values - np.max(q_values))
-            # q_values = e_x / e_x.sum(axis=0)
-
             minus_diff = np.max(q_values) - np.min(q_values)
             div_diff = np.max(q_values) / np.min(q_values)
             sec_ord_diff = minus_diff - old_diff
             old_diff = minus_diff
 
-            if args.save_q_value:
+            if args.save_q_value: # Save the q value to a file
                 with open('/Users/harry/Documents/q_value_pong_ep' + str(num_episodes+1) + '_diff' + str(args.diff) + '.csv', 'a') as q_value_file:
                     q_value_writter = csv.writer(q_value_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
                     q_value_writter.writerow(q_values)
 
-            if args.adv:
+            if args.adv_alg:
                 diff = minus_diff if args.diff_type == 'diff' else div_diff \
                                   if args.diff_type == 'div_diff' else sec_ord_diff \
                                   if args.diff_type == 'sec_ord_diff' else minus_diff
+
                 if diff >= args.diff:
                     num_attack = num_attack + 1
                     with g.as_default():
                         with tf.Session() as sess:
                             sess.run(tf.global_variables_initializer())
-                            adv_obs = craft_adv_obs([obs])[0] # (84,84,4)
+                            adv_obs = craft_adv_obs([obs])[0] # Get the adversarial observation
                             adv_obs = np.rint(adv_obs)
                             adv_obs = adv_obs.astype(np.uint8)
-                    if args.preview_image:
+
+                    if args.preview_image: # Show a few adversarial images on the screen
                         if num_attack >= 2 and num_attack <= 10:
-                            img2 = Image.fromarray(np.asarray(adv_obs[:,:,0]), mode='L')
-                            img2.show()
-                    if args.save_image:
+                            adv_img = Image.fromarray(np.asarray(adv_obs[:,:,0]), mode='L')
+                            adv_img.show()
+
+                    if args.save_image: # Save one episode of adversarial images in a folder
                         if num_episodes == 0:
-                            if num_moves <= 420:
-                                img = Image.fromarray(np.asarray(adv_obs[:,:,0]), mode='L')
-                                img.save('/Users/harry/Documents/adv_19_99/adv_image_' + str(num_moves) + '.png')
+                            img = Image.fromarray(np.asarray(adv_obs[:,:,0]), mode='L')
+                            img.save('/Users/harry/Documents/adv_19_99/adv_image_' + str(num_moves) + '.png')
+
                     prev_state = np.copy(state)
                     action, _, _, _ = model.step(obs,S=prev_state, M=dones)
                     adv_action, _, state, _ = model.step(adv_obs,S=prev_state, M=dones)
-                    if (adv_action != action):
+                    if (adv_action != action): # Count as a successful atttack
                         # print('Action before: {}, Action after: {}'.format(
                         #       action_meanings[action[0]], action_meanings[adv_action[0]]))
                         num_success_attack = num_success_attack + 1
@@ -303,19 +303,11 @@ def main():
                         img = Image.fromarray(np.asarray(obs[:,:,0]), mode='L')
                         img.save('/Users/harry/Documents/adv_images_ep' + str(num_episodes+1) + '/' + str(num_moves) + '.png')
             else:
-                if args.save_image:
+                if args.save_image: # Save one episode of normal images in a folder
                     if num_episodes == 0:
                         img = Image.fromarray(np.asarray(obs[:,:,0]), mode='L')
                         img.save('/Users/harry/Documents/normal_obs' + str(num_moves) + '.png')
                 action, _, state, _ = model.step(obs,S=state, M=dones)
-
-                # env_copy = env.unwrapped.clone_full_state()
-                # reward_list = []
-                # for i in range(env.action_space.n):
-                #     reward_list.append(env.step(i)[1])
-                #     env.unwrapped.restore_full_state(env_copy)
-                # max_diff = max(reward_list) - min(reward_list)
-                # print(max_diff)
                 obs, _, done, info = env.step(action)
             env.render()
             done = done.any() if isinstance(done, np.ndarray) else done
@@ -323,13 +315,10 @@ def main():
             if done:
                 npc_score = info['episode']['r']
                 score = 21 if npc_score < 0 else 21 - npc_score
-                # with open('/Users/harry/Documents/reward.csv', 'a') as q_value_file:
-                #     q_value_writter = csv.writer(q_value_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-                #     q_value_writter.writerow([npc_score])
                 obs = env.reset()
                 print('Episode {} takes {} time steps'.format(num_episodes, num_moves))
                 print('NPC Score: {}'.format(npc_score))
-                if args.adv:
+                if args.adv_alg:
                     attack_rate = float(num_attack) / num_moves
                     success_rate = float(num_success_attack) / num_attack
                     print('Percentage of attack: {}'.format(100 * attack_rate))
