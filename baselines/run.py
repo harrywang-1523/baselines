@@ -223,10 +223,10 @@ def main():
 
     if args.save_info: # Save all the information in a csv filter
         name = args.info_name
-        with open('/Users/harry/Documents/info/'+name, mode='a') as csv_file:
-            fieldnames = ['episode', 'diff_type', 'diff', 'epsilon', 'steps', 'attack rate', 'success rate', 'score']
-            writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
-            writer.writeheader()
+        csv_file = open('/Users/harry/Documents/info/' + name, mode='a' )
+        fieldnames = ['episode', 'diff_type', 'diff', 'epsilon', 'steps', 'attack rate', 'success rate', 'score']
+        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+        writer.writeheader()
 
     if args.play:
         logger.log("Running trained model")
